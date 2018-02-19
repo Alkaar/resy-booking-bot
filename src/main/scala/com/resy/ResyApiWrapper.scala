@@ -9,8 +9,8 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 object ResyApiWrapper {
-  private val auth_token = "9_ziUdgf76tqxUlb1MYtKD6M96P0ty6w3ihJ_XsEnLuDiM6WZWBkDyhUaUbeKum3Rf060tleKpfLEQ08qBsh_0KZAzlVg1b%7CwlMOs90vfZo%3D-0f4abbf54f91428fe258a8073df32919f7120207ff05564d625624dd"
-  private val api_key = "VbWk7s3L4KiK5fzlO7JD3Q5EYolJI7n5"
+  private val auth_token = ""
+  private val api_key = ""
 
   implicit val system = ActorSystem()
   implicit val materializer = ActorMaterializer()
