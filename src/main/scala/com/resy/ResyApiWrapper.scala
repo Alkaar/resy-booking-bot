@@ -6,6 +6,7 @@ import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import com.resy.BookingDetails._
 import com.resy.ResyApiMapKeys.{BookReservation, FindReservation, ReservationDetails, UserDetails}
+import org.joda.time.DateTime
 import play.api.libs.ws.ahc.AhcWSClient
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -16,7 +17,7 @@ object ResyApiWrapper {
   implicit val materializer = ActorMaterializer()
   private val ws = AhcWSClient()
 
-  private val apiMap = Map(
+  private val apiMap : Map[ResyApiMapKey, ApiDetails] = Map(
     UserDetails ->
       ApiDetails(
         url = "api.resy.com/2/user",
@@ -39,11 +40,11 @@ object ResyApiWrapper {
         testFailureRespnse = """{"message": "Invalid user authentication credentials were provided."}""")
   )
 
-  def sendGetRequest(resyApiMapKey: ResyApiMapKey with Product with Serializable, queryParams: Map[String, String], test: Boolean): Future[String] = {
+  def sendGetRequest(resyApiMapKey: ResyApiMapKey, queryParams: Map[String, String], test: Boolean): Future[String] = {
     val apiDetails = apiMap.get(resyApiMapKey).get
     val url = s"https://${apiDetails.url}?auth_token=$auth_token&${stringifyQueryParams(queryParams)}"
 
-    println(s"URL Request: $url")
+    println(s"${DateTime.now} URL Request: $url")
 
     if (test == false) {
       ws.url(url)
@@ -61,8 +62,8 @@ object ResyApiWrapper {
     val url = s"https://${apiDetails.url}"
     val post = s"auth_token=$auth_token&${stringifyQueryParams(queryParams)}"
 
-    println(s"URL Request: $url")
-    println(s"Post Params: $post")
+    println(s"${DateTime.now} URL Request: $url")
+    println(s"${DateTime.now} Post Params: $post")
 
     if (test == false) {
       ws.url(url)
