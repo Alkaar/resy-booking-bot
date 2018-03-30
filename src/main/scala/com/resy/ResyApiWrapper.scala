@@ -50,14 +50,15 @@ object ResyApiWrapper {
       ws.url(url)
         .withHttpHeaders("Authorization" -> s"""ResyAPI api_key="$api_key"""")
         .get
-        .map(resp => resp.body)(system.dispatcher)
+        .map(_.body)(system.dispatcher)
     } else {
       println("THIS IS A TEST RESPONSE")
+      Thread.sleep(5000)
       Future(apiDetails.testSuccessResponse)
     }
   }
 
-  def sendPostRequest(resyApiMapKey: ResyApiMapKey with Product with Serializable, queryParams: Map[String, String], test: Boolean): Future[String] = {
+  def sendPostRequest(resyApiMapKey: ResyApiMapKey, queryParams: Map[String, String], test: Boolean): Future[String] = {
     val apiDetails = apiMap.get(resyApiMapKey).get
     val url = s"https://${apiDetails.url}"
     val post = s"auth_token=$auth_token&${stringifyQueryParams(queryParams)}"
@@ -69,9 +70,10 @@ object ResyApiWrapper {
       ws.url(url)
         .withHttpHeaders("Content-Type" -> "application/x-www-form-urlencoded", "Authorization" -> s"""ResyAPI api_key="$api_key"""")
         .post(post)
-        .map(resp => resp.body)(system.dispatcher)
+        .map(_.body)(system.dispatcher)
     } else {
       println("THIS IS A TEST RESPONSE")
+      Thread.sleep(5000)
       Future(apiDetails.testSuccessResponse)
     }
   }
