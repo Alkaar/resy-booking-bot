@@ -40,41 +40,40 @@ object ResyApiWrapper {
         testFailureRespnse = """{"message": "Invalid user authentication credentials were provided."}""")
   )
 
-  def sendGetRequest(resyApiMapKey: ResyApiMapKey, queryParams: Map[String, String], test: Boolean): Future[String] = {
+  def sendGetRequest(resyApiMapKey: ResyApiMapKey, queryParams: Map[String, String])(implicit testing: Boolean): Future[String] = {
     val apiDetails = apiMap.get(resyApiMapKey).get
     val url = s"https://${apiDetails.url}?auth_token=$auth_token&${stringifyQueryParams(queryParams)}"
 
-    println(s"${DateTime.now} URL Request: $url")
+    println(s"\n${DateTime.now} URL Request: $url")
 
-    if (test == false) {
-      ws.url(url)
-        .withHttpHeaders("Authorization" -> s"""ResyAPI api_key="$api_key"""")
-        .get
-        .map(_.body)(system.dispatcher)
-    } else {
-      println("THIS IS A TEST RESPONSE")
-      Thread.sleep(5000)
-      Future(apiDetails.testSuccessResponse)
+
+    testing match {
+      case false =>
+        ws.url(url)
+          .withHttpHeaders("Authorization" -> s"""ResyAPI api_key="$api_key"""")
+          .get
+          .map(_.body)(system.dispatcher)
+      case true =>
+        testResponse(apiDetails)
     }
   }
 
-  def sendPostRequest(resyApiMapKey: ResyApiMapKey, queryParams: Map[String, String], test: Boolean): Future[String] = {
+  def sendPostRequest(resyApiMapKey: ResyApiMapKey, queryParams: Map[String, String])(implicit testing: Boolean): Future[String] = {
     val apiDetails = apiMap.get(resyApiMapKey).get
     val url = s"https://${apiDetails.url}"
     val post = s"auth_token=$auth_token&${stringifyQueryParams(queryParams)}"
 
-    println(s"${DateTime.now} URL Request: $url")
+    println(s"\n${DateTime.now} URL Request: $url")
     println(s"${DateTime.now} Post Params: $post")
 
-    if (test == false) {
-      ws.url(url)
-        .withHttpHeaders("Content-Type" -> "application/x-www-form-urlencoded", "Authorization" -> s"""ResyAPI api_key="$api_key"""")
-        .post(post)
-        .map(_.body)(system.dispatcher)
-    } else {
-      println("THIS IS A TEST RESPONSE")
-      Thread.sleep(5000)
-      Future(apiDetails.testSuccessResponse)
+    testing match {
+      case false =>
+        ws.url(url)
+          .withHttpHeaders("Content-Type" -> "application/x-www-form-urlencoded", "Authorization" -> s"""ResyAPI api_key="$api_key"""")
+          .post(post)
+          .map(_.body)(system.dispatcher)
+      case true =>
+        testResponse(apiDetails)
     }
   }
 
@@ -84,6 +83,12 @@ object ResyApiWrapper {
         combined + s"""${tuple._1}=${URLEncoder.encode(tuple._2, "UTF-8")}&"""
       }
     }
+  }
+
+  private[this] def testResponse(apiDetails: ApiDetails): Future[String] = {
+    println("THIS IS A TEST RESPONSE")
+    Thread.sleep(1000)
+    Future(apiDetails.testSuccessResponse)
   }
 
   private[this] case class ApiDetails(val url: String, val testSuccessResponse: String, val testFailureRespnse: String)
