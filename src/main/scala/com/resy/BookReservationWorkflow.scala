@@ -12,7 +12,7 @@ import scala.concurrent.{Await, Future}
 import scala.util.{Failure, Success, Try}
 
 object BookReservationWorkflow {
-  implicit val testing = true
+  implicit val testing = false
 
   /**
     * STEP 1: FIND RESERVATION (GET CONFIG ID)

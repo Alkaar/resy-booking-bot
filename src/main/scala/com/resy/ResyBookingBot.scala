@@ -6,6 +6,7 @@ import org.joda.time.DateTime
 import play.api.libs.json._
 
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.duration._
 import scala.util.{Failure, Success, Try}
 
 object ResyBookingBot {
@@ -21,8 +22,7 @@ object ResyBookingBot {
 
     println(s"Current time: ${DateTime.now}")
     println(s"Sleeping for $hoursRemaining hours, $minutesRemaining minutes and $secondsRemaining seconds")
-    bookReservationWorkflow
-//    system.scheduler.scheduleOnce(millisUntilTomorrow millis)(bookReservationWorkflow)
+    system.scheduler.scheduleOnce(millisUntilTomorrow millis)(bookReservationWorkflow)
   }
 
   def bookReservationWorkflow = {
