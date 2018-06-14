@@ -15,7 +15,7 @@ object ResyBookingBot {
 
     val system = ActorSystem("System")
     val startOfTomorrow = DateTime.now.withTimeAtStartOfDay.plusDays(1).getMillis
-    val millisUntilTomorrow = startOfTomorrow - DateTime.now.getMillis
+    val millisUntilTomorrow = startOfTomorrow - DateTime.now.getMillis - 1000
     val hoursRemaining = millisUntilTomorrow/1000/60/60
     val minutesRemaining = millisUntilTomorrow/1000/60 - hoursRemaining * 60
     val secondsRemaining = millisUntilTomorrow/1000 - hoursRemaining * 60 * 60 - minutesRemaining * 60
