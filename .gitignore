@@ -2,3 +2,6 @@
 *.log
 *.xml
 *.iml
+*.DS_Store
+/target
+/project/target
