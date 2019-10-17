@@ -1,10 +1,10 @@
 package com.resy
 
-import com.resy.BookingDetails.{time, _}
+import com.resy.BookingDetails._
 import com.resy.ResyApiWrapper._
 import org.joda.time.DateTime
 import play.api.libs.json.JsResult.Exception
-import play.api.libs.json.{JsArray, JsError, Json}
+import play.api.libs.json.{JsArray, JsError, JsValue, Json}
 
 import scala.annotation.tailrec
 import scala.concurrent.duration._
@@ -85,30 +85,45 @@ object BookReservationWorkflow {
     */
   @tailrec
   def retryFindReservation(endTime: Long): String = {
-    val findResResp = Await.result(findReservation, 5 seconds)
+    val findResResp = Await.result(findReservation, 6 seconds)
 
     println(s"${DateTime.now} URL Response: $findResResp")
 
     //ConfigId - Searching for this pattern - "time_slot": "17:15:00", "badge": null, "service_type_id": 2, "colors": {"background": "2E6D81", "font": "FFFFFF"}, "template": null, "id": 123457
+
+    val results = Try((Json.parse(findResResp) \ "results" \ 0 \ "configs")
+      .get
+      .as[JsArray]
+      .value
+      )
+
+    results match {
+      case Success(reservationTimes) =>
+        findReservationTime(reservationTimes, times)
+      case Failure(_) if endTime - DateTime.now.getMillis > 0 =>
+        retryFindReservation(endTime)
+      case _ =>
+        throw new Exception(JsError("Could not find a reservation for the given time(s)"))
+    }
+  }
+
+  @tailrec
+  private[this] def findReservationTime(reservationTimes : IndexedSeq[JsValue], timePref : Seq[String]): String = {
     val reservation =
-      Try(((Json.parse(findResResp) \ "results" \ 0 \ "configs")
-        .get
-        .as[JsArray]
-        .value
-        .filter(x => (x \ "time_slot").get.toString == s""""$time"""")
-        (0) \ "id")
+      Try((reservationTimes.filter(x => (x \ "time_slot").get.toString == s""""${timePref.head}"""")
+      (0) \ "id")
         .get
         .toString
-      )
+    )
 
     reservation match {
       case Success(configId) =>
         println(s"${DateTime.now} Config Id: $configId")
         configId
-      case Failure(_) if endTime - DateTime.now.getMillis > 0 =>
-        retryFindReservation(endTime)
+      case Failure(_) if timePref.size > 0 =>
+        findReservationTime(reservationTimes, timePref.tail)
       case _ =>
-        throw new Exception(JsError("Could not find a reservation for the given time"))
+        throw new Exception(JsError("Could not find a reservation for the given time(s)"))
     }
   }
 }
