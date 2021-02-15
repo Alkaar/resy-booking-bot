@@ -10,18 +10,22 @@ import scala.concurrent.duration._
 import scala.util.{Failure, Success, Try}
 
 object ResyBookingBot {
+
   def main(args: Array[String]): Unit = {
     println("Starting Resy Booking Bot")
 
-    val system = ActorSystem("System")
-    val startOfTomorrow = DateTime.now.withTimeAtStartOfDay.plusDays(1).getMillis
+    val system              = ActorSystem("System")
+    val startOfTomorrow     = DateTime.now.withTimeAtStartOfDay.plusDays(1).getMillis
     val millisUntilTomorrow = startOfTomorrow - DateTime.now.getMillis - 1000
-    val hoursRemaining = millisUntilTomorrow/1000/60/60
-    val minutesRemaining = millisUntilTomorrow/1000/60 - hoursRemaining * 60
-    val secondsRemaining = millisUntilTomorrow/1000 - hoursRemaining * 60 * 60 - minutesRemaining * 60
+    val hoursRemaining      = millisUntilTomorrow / 1000 / 60 / 60
+    val minutesRemaining    = millisUntilTomorrow / 1000 / 60 - hoursRemaining * 60
+    val secondsRemaining =
+      millisUntilTomorrow / 1000 - hoursRemaining * 60 * 60 - minutesRemaining * 60
 
     println(s"Current time: ${DateTime.now}")
-    println(s"Sleeping for $hoursRemaining hours, $minutesRemaining minutes and $secondsRemaining seconds")
+    println(
+      s"Sleeping for $hoursRemaining hours, $minutesRemaining minutes and $secondsRemaining seconds"
+    )
     system.scheduler.scheduleOnce(millisUntilTomorrow millis)(bookReservationWorkflow)
   }
 
@@ -32,15 +36,15 @@ object ResyBookingBot {
     val findResResp = retryFindReservation(DateTime.now.plusSeconds(10).getMillis)
 
     //Try to book the reservation
-    for(resDetailsResp <- getReservationDetails(findResResp);
-        bookResResp <- bookReservation(resDetailsResp)
-    ) {
+    for {
+      resDetailsResp <- getReservationDetails(findResResp)
+      bookResResp    <- bookReservation(resDetailsResp)
+    } {
       val resyToken =
-        Try((Json.parse(bookResResp) \ "resy_token")
-          .get
-          .toString
-          .stripPrefix("\"")
-          .stripSuffix("\"")
+        Try(
+          (Json.parse(bookResResp) \ "resy_token").get.toString
+            .stripPrefix("\"")
+            .stripSuffix("\"")
         )
 
       resyToken match {
