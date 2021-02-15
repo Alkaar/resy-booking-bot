@@ -1,7 +1,23 @@
 *.class
+*.iml
 *.log
 *.xml
-*.iml
-*.DS_Store
-/target
-/project/target
+
+# sbt specific
+.bsp/
+.cache
+.history
+.lib/
+dist/*
+lib_managed/
+src_managed/
+target/
+project/boot/
+project/plugins/project/
+project/target/
+
+# Scala-IDE / IOS specific
+.DS_Store
+.idea
+.scala_dependencies
+.worksheet

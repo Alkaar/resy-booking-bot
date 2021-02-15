@@ -1,15 +1,16 @@
 package com.resy
 
 object BookingDetails {
-  //Your user profile Auth Token
+  // Your user profile Auth Token
   val auth_token = ""
-  //Your user profile API key
+  // Your user profile API key
   val api_key = ""
-  //RestaurantId where you want to make the reservation
+  // RestaurantId where you want to make the reservation
   val venueId = ""
-  //YYYY-MM-DD of reservation
+  // YYYY-MM-DD of reservation
   val day = "2018-01-01"
-  //Seq of HH:MM:SS times of reservations in military time format
+
+  // Seq of HH:MM:SS times of reservations in military time format
   val times = Seq(
     "18:00:00",
     "18:15:00",
@@ -19,7 +20,8 @@ object BookingDetails {
     "19:15:00",
     "19:30:00",
     "19:45:00",
-    "20:00:00")
-  //Size of party
+    "20:00:00"
+  )
+  // Size of party
   val partySize = "2"
 }
