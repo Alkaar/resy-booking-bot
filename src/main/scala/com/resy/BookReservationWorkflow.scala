@@ -36,7 +36,9 @@ object BookReservationWorkflow {
     * @return
     */
   def getReservationDetails(configId: String) = {
-    val findResQueryParams = Map("config_id" -> configId, "day" -> day, "party_size" -> partySize)
+    val configIdClean = configId.substring(1, configId.length()-1)
+    println(s"${DateTime.now} Config ID Clean: $configIdClean")
+    val findResQueryParams = Map("config_id" -> configIdClean, "day" -> day, "party_size" -> partySize, "commit" -> "1")
 
     sendGetRequest(ResyApiMapKeys.ReservationDetails, findResQueryParams)
   }
@@ -48,7 +50,7 @@ object BookReservationWorkflow {
     */
   def bookReservation(resDetailsResp: String) = {
     val resDetails = Json.parse(resDetailsResp)
-    println(s"${DateTime.now} URL Response: $resDetailsResp")
+    println(s"${DateTime.now} resDetails URL Response: $resDetailsResp")
 
     //PaymentMethodId - Searching for this pattern - "payment_methods": [{"is_default": true, "provider_name": "braintree", "id": 123456, "display": "1234", "provider_id": 1}]
     val paymentMethodId =
@@ -87,7 +89,7 @@ object BookReservationWorkflow {
     //ConfigId - Searching for this pattern - "time_slot": "17:15:00", "badge": null, "service_type_id": 2, "colors": {"background": "2E6D81", "font": "FFFFFF"}, "template": null, "id": 123457
 
     val results = Try(
-      (Json.parse(findResResp) \ "results" \ 0 \ "configs").get
+      (Json.parse(findResResp) \ "results" \ "venues" \ 0 \ "slots").get
         .as[JsArray]
         .value
     )
@@ -107,11 +109,12 @@ object BookReservationWorkflow {
     reservationTimes: IndexedSeq[JsValue],
     timePref: Seq[String]
   ): String = {
+    println("inside findReservationTime")
     val reservation =
       Try(
-        (reservationTimes.filter(x => (x \ "time_slot").get.toString == s""""${timePref.head}"""")(
+        (reservationTimes.filter(x => (x \ "date" \ "start").get.toString == s""""${timePref.head}"""")(
           0
-        ) \ "id").get.toString
+        ) \ "config" \ "token").get.toString
       )
 
     reservation match {
