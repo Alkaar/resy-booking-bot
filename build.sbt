@@ -1,7 +1,7 @@
 name := "resy-booking-bot"
 
-scalaVersion := "2.13.4"
+scalaVersion := "3.1.3"
 
 lazy val root = project in file(".")
 
-libraryDependencies ++= Seq("com.typesafe.play" %% "play-ahc-ws" % "2.6.11")
+libraryDependencies ++= Seq("com.typesafe.play" %% "play-ahc-ws" % "2.8.16")

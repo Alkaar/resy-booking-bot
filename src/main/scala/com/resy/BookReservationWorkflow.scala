@@ -9,6 +9,7 @@ import play.api.libs.json.{JsArray, JsError, JsValue, Json}
 import scala.annotation.tailrec
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
+import scala.language.postfixOps
 import scala.util.{Failure, Success, Try}
 
 object BookReservationWorkflow {
@@ -20,9 +21,9 @@ object BookReservationWorkflow {
     */
   private[this] def findReservation: Future[String] = {
     val findResQueryParams = Map(
-      "day"        -> day,
       "lat"        -> "0",
       "long"       -> "0",
+      "day"        -> day,
       "party_size" -> partySize,
       "venue_id"   -> venueId
     )
@@ -35,8 +36,13 @@ object BookReservationWorkflow {
     * @param configId
     * @return
     */
-  def getReservationDetails(configId: String) = {
-    val findResQueryParams = Map("config_id" -> configId, "day" -> day, "party_size" -> partySize)
+  def getReservationDetails(configId: String): Future[String] = {
+    val findResQueryParams =
+      Map(
+        "config_id"  -> configId.drop(1).dropRight(1),
+        "day"        -> day,
+        "party_size" -> partySize
+      )
 
     sendGetRequest(ResyApiMapKeys.ReservationDetails, findResQueryParams)
   }
@@ -46,7 +52,7 @@ object BookReservationWorkflow {
     * @param resDetailsResp
     * @return
     */
-  def bookReservation(resDetailsResp: String) = {
+  def bookReservation(resDetailsResp: String): Future[String] = {
     val resDetails = Json.parse(resDetailsResp)
     println(s"${DateTime.now} URL Response: $resDetailsResp")
 
@@ -87,41 +93,41 @@ object BookReservationWorkflow {
     //ConfigId - Searching for this pattern - "time_slot": "17:15:00", "badge": null, "service_type_id": 2, "colors": {"background": "2E6D81", "font": "FFFFFF"}, "template": null, "id": 123457
 
     val results = Try(
-      (Json.parse(findResResp) \ "results" \ 0 \ "configs").get
+      (Json.parse(findResResp) \ "results" \ "venues" \ 0 \ "slots").get
         .as[JsArray]
         .value
     )
 
     results match {
       case Success(reservationTimes) =>
-        findReservationTime(reservationTimes, times)
+        findReservationTime(reservationTimes.toSeq, times)
       case Failure(_) if endTime - DateTime.now.getMillis > 0 =>
         retryFindReservation(endTime)
       case _ =>
-        throw new Exception(JsError("Could not find a reservation for the given time(s)"))
+        throw Exception(JsError("Could not find a reservation for the given time(s)"))
     }
   }
 
   @tailrec
   private[this] def findReservationTime(
-    reservationTimes: IndexedSeq[JsValue],
+    reservationTimes: Seq[JsValue],
     timePref: Seq[String]
   ): String = {
     val reservation =
       Try(
-        (reservationTimes.filter(x => (x \ "time_slot").get.toString == s""""${timePref.head}"""")(
-          0
-        ) \ "id").get.toString
+        (reservationTimes
+          .filter(x => (x \ "date" \ "start").get.toString.contains(timePref.head))
+          .head \ "config" \ "token").get.toString
       )
 
     reservation match {
       case Success(configId) =>
         println(s"${DateTime.now} Config Id: $configId")
         configId
-      case Failure(_) if timePref.size > 0 =>
+      case Failure(_) if timePref.nonEmpty =>
         findReservationTime(reservationTimes, timePref.tail)
       case _ =>
-        throw new Exception(JsError("Could not find a reservation for the given time(s)"))
+        throw Exception(JsError("Could not find a reservation for the given time(s)"))
     }
   }
 }

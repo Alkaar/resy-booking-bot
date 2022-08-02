@@ -7,6 +7,7 @@ import play.api.libs.json._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
+import scala.language.postfixOps
 import scala.util.{Failure, Success, Try}
 
 object ResyBookingBot {
@@ -29,7 +30,7 @@ object ResyBookingBot {
     system.scheduler.scheduleOnce(millisUntilTomorrow millis)(bookReservationWorkflow)
   }
 
-  def bookReservationWorkflow = {
+  private[this] def bookReservationWorkflow = {
     println(s"Attempting to snipe reservation at ${DateTime.now}")
 
     //Try to get configId of the time slot for 10 seconds
@@ -43,8 +44,8 @@ object ResyBookingBot {
       val resyToken =
         Try(
           (Json.parse(bookResResp) \ "resy_token").get.toString
-            .stripPrefix("\"")
-            .stripSuffix("\"")
+            .drop(1)
+            .dropRight(1)
         )
 
       resyToken match {
