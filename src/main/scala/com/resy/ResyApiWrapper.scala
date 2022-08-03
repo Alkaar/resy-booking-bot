@@ -7,6 +7,7 @@ import com.resy.BookingDetails._
 import com.resy.ResyApiMapKeys.{BookReservation, FindReservation, ReservationDetails, UserDetails}
 import org.joda.time.DateTime
 import play.api.libs.ws.ahc.AhcWSClient
+import play.api.libs.ws.WSBodyWritables.writeableOf_String
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future

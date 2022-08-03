@@ -27,16 +27,17 @@ object ResyBookingBot {
     println(
       s"Sleeping for $hoursRemaining hours, $minutesRemaining minutes and $secondsRemaining seconds"
     )
+
     system.scheduler.scheduleOnce(millisUntilTomorrow millis)(bookReservationWorkflow)
   }
 
   private[this] def bookReservationWorkflow = {
     println(s"Attempting to snipe reservation at ${DateTime.now}")
 
-    //Try to get configId of the time slot for 10 seconds
+    // Try to get configId of the time slot for 10 seconds
     val findResResp = retryFindReservation(DateTime.now.plusSeconds(10).getMillis)
 
-    //Try to book the reservation
+    // Try to book the reservation
     for {
       resDetailsResp <- getReservationDetails(findResResp)
       bookResResp    <- bookReservation(resDetailsResp)
