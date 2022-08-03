@@ -13,10 +13,9 @@ import scala.language.postfixOps
 import scala.util.{Failure, Success, Try}
 
 object BookReservationWorkflow {
-  implicit val testing = false
+  implicit val testing: Boolean = false
 
-  /**
-    * STEP 1: FIND RESERVATION (GET CONFIG ID)
+  /** STEP 1: FIND RESERVATION (GET CONFIG ID)
     * @return
     */
   private[this] def findReservation: Future[String] = {
@@ -31,8 +30,7 @@ object BookReservationWorkflow {
     sendGetRequest(ResyApiMapKeys.FindReservation, findResQueryParams)
   }
 
-  /**
-    * STEP 2: GET RESERVATION DETAILS (GET PAYMENT ID AND BOOK TOKEN)
+  /** STEP 2: GET RESERVATION DETAILS (GET PAYMENT ID AND BOOK TOKEN)
     * @param configId
     * @return
     */
@@ -47,8 +45,7 @@ object BookReservationWorkflow {
     sendGetRequest(ResyApiMapKeys.ReservationDetails, findResQueryParams)
   }
 
-  /**
-    * STEP 3: BOOK RESERVATION
+  /** STEP 3: BOOK RESERVATION
     * @param resDetailsResp
     * @return
     */
@@ -56,13 +53,14 @@ object BookReservationWorkflow {
     val resDetails = Json.parse(resDetailsResp)
     println(s"${DateTime.now} URL Response: $resDetailsResp")
 
-    //PaymentMethodId - Searching for this pattern - "payment_methods": [{"is_default": true, "provider_name": "braintree", "id": 123456, "display": "1234", "provider_id": 1}]
+    // PaymentMethodId - Searching for this pattern - "payment_methods": [{"is_default": true,
+    // "provider_name": "braintree", "id": 123456, "display": "1234", "provider_id": 1}]
     val paymentMethodId =
       (resDetails \ "user" \ "payment_methods" \ 0 \ "id").get.toString
 
     println(s"${DateTime.now} Payment Method Id: $paymentMethodId")
 
-    //BookToken - Searching for this pattern - "book_token": {"value": "book_token_value"
+    // BookToken - Searching for this pattern - "book_token": {"value": "book_token_value"
     val bookToken =
       (resDetails \ "book_token" \ "value").get.toString
         .stripPrefix("\"")
@@ -79,8 +77,8 @@ object BookReservationWorkflow {
     sendPostRequest(ResyApiMapKeys.BookReservation, bookResQueryParams)
   }
 
-  /**
-    * Same as Step 1 but does a retry.  Blocks because the reservation can't proceed without an available reservation
+  /** Same as Step 1 but does a retry. Blocks because the reservation can't proceed without an
+    * available reservation
     * @param endTime
     * @return
     */
@@ -90,7 +88,9 @@ object BookReservationWorkflow {
 
     println(s"${DateTime.now} URL Response: $findResResp")
 
-    //ConfigId - Searching for this pattern - "time_slot": "17:15:00", "badge": null, "service_type_id": 2, "colors": {"background": "2E6D81", "font": "FFFFFF"}, "template": null, "id": 123457
+    // ConfigId - Searching for this pattern - "time_slot": "17:15:00", "badge": null,
+    // "service_type_id": 2, "colors": {"background": "2E6D81", "font": "FFFFFF"}, "template": null,
+    // "id": 123457
 
     val results = Try(
       (Json.parse(findResResp) \ "results" \ "venues" \ 0 \ "slots").get
