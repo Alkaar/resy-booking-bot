@@ -1,23 +1,42 @@
 package com.resy
 
 import akka.actor.ActorSystem
-import com.resy.BookReservationWorkflow._
 import org.joda.time.DateTime
-import play.api.libs.json._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import scala.language.postfixOps
-import scala.util.{Failure, Success, Try}
 
 object ResyBookingBot {
 
+  private val resyKeys = ResyKeys(
+    // Your user profile API key which can be found via your browser DevTools
+    apiKey = ???,
+    // Your user profile authentication token which can be found via your browser DevTools
+    authToken = ???
+  )
+
+  private val resDetails = ReservationDetails(
+    // Date of the reservation in YYYY-MM-DD format
+    date = ???,
+    // Size of the party reservation
+    partySize = ???,
+    // Unique identifier of the restaurant where you want to make the reservation
+    venueId = ???,
+    // Priority list of reservation times in military time HH:MM:SS format
+    preferredResTimes = ???
+  )
+
   def main(args: Array[String]): Unit = {
+    val dateTimeNow = DateTime.now
     println("Starting Resy Booking Bot")
 
+    val resyApi    = new ResyApi(resyKeys)
+    val resyClient = new ResyClient(resyApi)
+
     val system              = ActorSystem("System")
-    val startOfTomorrow     = DateTime.now.withTimeAtStartOfDay.plusDays(1).getMillis
-    val millisUntilTomorrow = startOfTomorrow - DateTime.now.getMillis - 1000
+    val startOfTomorrow     = dateTimeNow.withTimeAtStartOfDay.plusDays(1).getMillis
+    val millisUntilTomorrow = startOfTomorrow - dateTimeNow.getMillis - 1000
     val hoursRemaining      = millisUntilTomorrow / 1000 / 60 / 60
     val minutesRemaining    = millisUntilTomorrow / 1000 / 60 - hoursRemaining * 60
     val secondsRemaining =
@@ -28,38 +47,17 @@ object ResyBookingBot {
       s"Sleeping for $hoursRemaining hours, $minutesRemaining minutes and $secondsRemaining seconds"
     )
 
-    system.scheduler.scheduleOnce(millisUntilTomorrow millis)(bookReservationWorkflow)
-  }
-
-  private[this] def bookReservationWorkflow = {
-    println(s"Attempting to snipe reservation at ${DateTime.now}")
-
-    // Try to get configId of the time slot for 10 seconds
-    val findResResp = retryFindReservation(DateTime.now.plusSeconds(10).getMillis)
-
-    // Try to book the reservation
-    for {
-      resDetailsResp <- getReservationDetails(findResResp)
-      bookResResp    <- bookReservation(resDetailsResp)
-    } {
-      val resyToken =
-        Try(
-          (Json.parse(bookResResp) \ "resy_token").get.toString
-            .drop(1)
-            .dropRight(1)
-        )
-
-      resyToken match {
-        case Success(token) =>
-          println(s"Successfully sniped reservation at ${DateTime.now}")
-          println(s"Resy token is $token")
-        case Failure(error) =>
-          println(s"Couldn't sniped reservation at ${DateTime.now}")
-          println(s"Error message is $error")
-      }
-
-      println("Shutting down Resy Booking Bot at " + DateTime.now)
-      System.exit(0)
-    }
+    system.scheduler.scheduleOnce(millisUntilTomorrow millis)(
+      ResyBookingWorkflow.run(resyClient, resDetails)
+    )
   }
 }
+
+final private case class ResyKeys(apiKey: String, authToken: String)
+
+final private case class ReservationDetails(
+  date: String,
+  partySize: Int,
+  venueId: Int,
+  preferredResTimes: Seq[String]
+)
