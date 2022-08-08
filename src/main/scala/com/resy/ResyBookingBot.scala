@@ -23,7 +23,7 @@ object ResyBookingBot {
     partySize = ???,
     // Unique identifier of the restaurant where you want to make the reservation
     venueId = ???,
-    // Priority of reservation times in military time HH:MM:SS format
+    // Priority list of reservation times in military time HH:MM:SS format
     preferredResTimes = ???
   )
 
