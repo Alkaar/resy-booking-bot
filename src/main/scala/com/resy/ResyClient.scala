@@ -36,6 +36,8 @@ class ResyClient(resyApi: ResyApi) {
     preferredResTimes: Seq[String],
     millisToRetry: Long = (10 seconds).toMillis
   ): Try[String] = {
+    val dateTimeStart = DateTime.now.getMillis
+
     val findResResp = Await.result(
       awaitable = resyApi.getReservations(date, partySize, venueId),
       atMost    = 5 seconds
@@ -51,11 +53,13 @@ class ResyClient(resyApi: ResyApi) {
         .value
     )
 
+    val timeLeftToRetry = millisToRetry - (DateTime.now.getMillis - dateTimeStart)
+
     results match {
       case Success(reservationTimes) =>
         Success(findReservationTime(reservationTimes.toSeq, preferredResTimes))
-      case Failure(_) if DateTime.now.getMillis + millisToRetry - DateTime.now.getMillis > 0 =>
-        retryFindReservation(date, partySize, venueId, preferredResTimes, millisToRetry)
+      case Failure(_) if timeLeftToRetry > 0 =>
+        retryFindReservation(date, partySize, venueId, preferredResTimes, timeLeftToRetry)
       case _ =>
         throw Exception(JsError("Could not find a reservation for the given time(s)"))
     }
