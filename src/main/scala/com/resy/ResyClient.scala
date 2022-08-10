@@ -61,7 +61,7 @@ class ResyClient(resyApi: ResyApi) {
       case Failure(_) if timeLeftToRetry > 0 =>
         retryFindReservation(date, partySize, venueId, preferredResTimes, timeLeftToRetry)
       case _ =>
-        throw Exception(JsError("Could not find a reservation for the given time(s)"))
+        throw new RuntimeException("Could not find a reservation for the given time(s)")
     }
   }
 
@@ -109,7 +109,7 @@ class ResyClient(resyApi: ResyApi) {
       case Success(bookingDetails) =>
         Success(bookingDetails)
       case _ =>
-        throw Exception(JsError("Unknown error occurred"))
+        throw new RuntimeException("Unknown error occurred")
     }
   }
 
@@ -142,7 +142,7 @@ class ResyClient(resyApi: ResyApi) {
       case Success(resyToken) =>
         Success(resyToken)
       case _ =>
-        throw Exception(JsError("Unknown error occurred"))
+        throw new RuntimeException("Unknown error occurred")
     }
   }
 
