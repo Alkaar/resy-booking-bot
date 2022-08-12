@@ -14,10 +14,10 @@ object ResyBookingWorkflow {
 
     for {
       configId <- resyClient.retryFindReservation(
-        date              = resDetails.date,
-        partySize         = resDetails.partySize,
-        venueId           = resDetails.venueId,
-        preferredResTimes = resDetails.preferredResTimes
+        date         = resDetails.date,
+        partySize    = resDetails.partySize,
+        venueId      = resDetails.venueId,
+        resTimeTypes = resDetails.resTimeTypes
       )
       bookingDetails <- resyClient.getReservationDetails(
         configId  = configId,

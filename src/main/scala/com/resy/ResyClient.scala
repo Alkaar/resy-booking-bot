@@ -22,8 +22,9 @@ class ResyClient(resyApi: ResyApi) {
     *   Size of the party reservation
     * @param venueId
     *   Unique identifier of the restaurant where you want to make the reservation
-    * @param preferredResTimes
-    *   Priority of reservation times in military time HH:MM:SS format
+    * @param resTimeTypes
+    *   Priority list of reservation times and table types. Time is in military time HH:MM:SS
+    *   format.
     * @param millisToRetry
     *   Optional parameter for how long to try to find a reservations in milliseconds
     * @return
@@ -34,7 +35,7 @@ class ResyClient(resyApi: ResyApi) {
     date: String,
     partySize: Int,
     venueId: Int,
-    preferredResTimes: Seq[String],
+    resTimeTypes: Seq[ReservationTimeType],
     millisToRetry: Long = (10 seconds).toMillis
   ): Try[String] = {
     val dateTimeStart = DateTime.now.getMillis
@@ -59,9 +60,9 @@ class ResyClient(resyApi: ResyApi) {
 
     reservationTimesResp match {
       case Success(reservationTimes) =>
-        findReservationTime(reservationTimes, preferredResTimes)
+        findReservationTime(reservationTimes, resTimeTypes)
       case Failure(_) if timeLeftToRetry > 0 =>
-        retryFindReservation(date, partySize, venueId, preferredResTimes, timeLeftToRetry)
+        retryFindReservation(date, partySize, venueId, resTimeTypes, timeLeftToRetry)
       case _ =>
         Failure(new RuntimeException(cantFindResMsg))
     }
@@ -153,15 +154,23 @@ class ResyClient(resyApi: ResyApi) {
   @tailrec
   private[this] def findReservationTime(
     reservationTimes: Seq[JsValue],
-    timePref: Seq[String]
+    resTimeType: Seq[ReservationTimeType]
   ): Try[String] = {
 
     // Searching a list of JSON objects with this JSON structure...
-    // {"config": {"token": "CONFIG_ID"}, "date": {"start": "2099-01-30 17:00:00"}}
+    // {"config": {"type":"TABLE_TYPE","token": "CONFIG_ID"},
+    // "date": {"start": "2099-01-30 17:00:00"}}
     val results =
       Try(
         (reservationTimes
-          .filter(x => (x \ "date" \ "start").get.toString.contains(timePref.head))
+          .filter(jsonObj =>
+            (jsonObj \ "date" \ "start").get.toString
+              .contains(resTimeType.head.reservationTime) &&
+              resTimeType.head.tableType.forall(tableType =>
+                (jsonObj \ "config" \ "type").get.toString.toLowerCase
+                  .contains(tableType.toLowerCase)
+              )
+          )
           .head \ "config" \ "token").get.toString.drop(1).dropRight(1)
       )
 
@@ -169,8 +178,8 @@ class ResyClient(resyApi: ResyApi) {
       case Success(configId) =>
         println(s"${DateTime.now} Config Id: $configId")
         Success(configId)
-      case Failure(_) if timePref.nonEmpty =>
-        findReservationTime(reservationTimes, timePref.tail)
+      case Failure(_) if resTimeType.nonEmpty =>
+        findReservationTime(reservationTimes, resTimeType.tail)
       case _ =>
         Failure(new RuntimeException(cantFindResMsg))
     }

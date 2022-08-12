@@ -50,7 +50,7 @@ class ResyBookingWorkflowSpec extends AnyFlatSpec with Matchers {
         }
         exception.getMessage shouldEqual ResyClientErrorMessages.resNoLongerAvailMsg
       case _ =>
-        assert(false, "Failure not found")
+        fail("Failure not found")
     }
 
     verify(resyApi, Mockito.times(1))
@@ -78,13 +78,13 @@ class ResyBookingWorkflowSpec extends AnyFlatSpec with Matchers {
 object ResyBookingWorkflowSpec {
 
   val resDetails: ReservationDetails = ReservationDetails(
-    date              = "2099-01-30",
-    partySize         = 2,
-    venueId           = 1,
-    preferredResTimes = Seq("17:00:00")
+    date         = "2099-01-30",
+    partySize    = 2,
+    venueId      = 1,
+    resTimeTypes = Seq(ReservationTimeType("18:00:00", "TABLE_TYPE5"))
   )
 
-  val configId = "CONFIG_ID2"
+  val configId = "CONFIG_ID5"
 
   val paymentMethodId = 42
   val bookToken       = "BOOK_TOKEN"

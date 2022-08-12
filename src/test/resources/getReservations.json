@@ -5,18 +5,47 @@
         "slots": [
           {
             "config": {
+              "type":"TABLE_TYPE1",
               "token": "CONFIG_ID1"
             },
             "date": {
-              "start": "2022-01-30 16:00:00"
+              "start": "2099-01-30 16:00:00"
             }
           },
           {
             "config": {
+              "type":"TABLE_TYPE2",
               "token": "CONFIG_ID2"
             },
             "date": {
-              "start": "2022-01-30 17:00:00"
+              "start": "2099-01-30 17:00:00"
+            }
+          },
+          {
+            "config": {
+              "type":"TABLE_TYPE3",
+              "token": "CONFIG_ID3"
+            },
+            "date": {
+              "start": "2099-01-30 17:00:00"
+            }
+          },
+          {
+            "config": {
+              "type":"TABLE_TYPE4",
+              "token": "CONFIG_ID4"
+            },
+            "date": {
+              "start": "2099-01-30 17:00:00"
+            }
+          },
+          {
+            "config": {
+              "type":"TABLE_TYPE5",
+              "token": "CONFIG_ID5"
+            },
+            "date": {
+              "start": "2099-01-30 18:00:00"
             }
           }
         ]

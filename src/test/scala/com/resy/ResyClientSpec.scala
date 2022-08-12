@@ -27,12 +27,12 @@ class ResyClientSpec extends AnyFlatSpec with Matchers {
       .thenReturn(Future(Source.fromResource("getReservations.json").mkString))
 
     resyClient.retryFindReservation(
-      date              = resDetails.date,
-      partySize         = resDetails.partySize,
-      venueId           = resDetails.venueId,
-      preferredResTimes = resDetails.preferredResTimes,
-      millisToRetry     = (.1 seconds).toMillis
-    ) shouldEqual Success("CONFIG_ID2")
+      date          = resDetails.date,
+      partySize     = resDetails.partySize,
+      venueId       = resDetails.venueId,
+      resTimeTypes  = resDetails.resTimeTypes,
+      millisToRetry = (.1 seconds).toMillis
+    ) shouldEqual Success("CONFIG_ID5")
   }
 
   it should "find an available reservation that is not the highest priority" in new Fixture {
@@ -40,11 +40,59 @@ class ResyClientSpec extends AnyFlatSpec with Matchers {
       .thenReturn(Future(Source.fromResource("getReservations.json").mkString))
 
     resyClient.retryFindReservation(
-      date              = resDetails.date,
-      partySize         = resDetails.partySize,
-      venueId           = resDetails.venueId,
-      preferredResTimes = Seq("15:00:00", "17:00:00"),
-      millisToRetry     = (.1 seconds).toMillis
+      date      = resDetails.date,
+      partySize = resDetails.partySize,
+      venueId   = resDetails.venueId,
+      resTimeTypes = Seq(
+        ReservationTimeType("12:34:56", "TABLE_TYPE_DOES_NOT_EXIST"),
+        ReservationTimeType("16:00:00", "TABLE_TYPE1")
+      ),
+      millisToRetry = (.1 seconds).toMillis
+    ) shouldEqual Success("CONFIG_ID1")
+  }
+
+  it should "find an available reservation for a time with different table types" in new Fixture {
+    when(resyApi.getReservations(resDetails.date, resDetails.partySize, resDetails.venueId))
+      .thenReturn(Future(Source.fromResource("getReservations.json").mkString))
+
+    resyClient.retryFindReservation(
+      date      = resDetails.date,
+      partySize = resDetails.partySize,
+      venueId   = resDetails.venueId,
+      resTimeTypes = Seq(
+        ReservationTimeType("17:00:00", "TABLE_TYPE3")
+      ),
+      millisToRetry = (.1 seconds).toMillis
+    ) shouldEqual Success("CONFIG_ID3")
+  }
+
+  it should "find an available reservation and match on case insensitive table type" in new Fixture {
+    when(resyApi.getReservations(resDetails.date, resDetails.partySize, resDetails.venueId))
+      .thenReturn(Future(Source.fromResource("getReservations.json").mkString))
+
+    resyClient.retryFindReservation(
+      date      = resDetails.date,
+      partySize = resDetails.partySize,
+      venueId   = resDetails.venueId,
+      resTimeTypes = Seq(
+        ReservationTimeType("18:00:00", "table_TYPE5")
+      ),
+      millisToRetry = (.1 seconds).toMillis
+    ) shouldEqual Success("CONFIG_ID5")
+  }
+
+  it should "find an available reservation with no table type preference" in new Fixture {
+    when(resyApi.getReservations(resDetails.date, resDetails.partySize, resDetails.venueId))
+      .thenReturn(Future(Source.fromResource("getReservations.json").mkString))
+
+    resyClient.retryFindReservation(
+      date      = resDetails.date,
+      partySize = resDetails.partySize,
+      venueId   = resDetails.venueId,
+      resTimeTypes = Seq(
+        ReservationTimeType("17:00:00")
+      ),
+      millisToRetry = (.1 seconds).toMillis
     ) shouldEqual Success("CONFIG_ID2")
   }
 
@@ -54,12 +102,12 @@ class ResyClientSpec extends AnyFlatSpec with Matchers {
       .thenReturn(Future(Source.fromResource("getReservations.json").mkString))
 
     resyClient.retryFindReservation(
-      date              = resDetails.date,
-      partySize         = resDetails.partySize,
-      venueId           = resDetails.venueId,
-      preferredResTimes = resDetails.preferredResTimes,
-      millisToRetry     = (.1 seconds).toMillis
-    ) shouldEqual Success("CONFIG_ID2")
+      date          = resDetails.date,
+      partySize     = resDetails.partySize,
+      venueId       = resDetails.venueId,
+      resTimeTypes  = resDetails.resTimeTypes,
+      millisToRetry = (.1 seconds).toMillis
+    ) shouldEqual Success("CONFIG_ID5")
 
     verify(resyApi, Mockito.times(2))
       .getReservations(
@@ -74,11 +122,11 @@ class ResyClientSpec extends AnyFlatSpec with Matchers {
       .thenReturn(Future(""))
 
     resyClient.retryFindReservation(
-      date              = resDetails.date,
-      partySize         = resDetails.partySize,
-      venueId           = resDetails.venueId,
-      preferredResTimes = resDetails.preferredResTimes,
-      millisToRetry     = (.1 seconds).toMillis
+      date          = resDetails.date,
+      partySize     = resDetails.partySize,
+      venueId       = resDetails.venueId,
+      resTimeTypes  = resDetails.resTimeTypes,
+      millisToRetry = (.1 seconds).toMillis
     ) match {
       case Failure(exception) =>
         withClue("RuntimeException not found:") {
@@ -90,15 +138,35 @@ class ResyClientSpec extends AnyFlatSpec with Matchers {
     }
   }
 
-  it should "not find an available reservation in a list of reservations" in new Fixture {
+  it should "not find an available reservation where time matches and table type doesn't" in new Fixture {
     when(resyApi.getReservations(resDetails.date, resDetails.partySize, resDetails.venueId))
       .thenReturn(Future(Source.fromResource("getReservations.json").mkString))
 
     resyClient.retryFindReservation(
-      date              = resDetails.date,
-      partySize         = resDetails.partySize,
-      venueId           = resDetails.venueId,
-      preferredResTimes = Seq("18:00:00")
+      date         = resDetails.date,
+      partySize    = resDetails.partySize,
+      venueId      = resDetails.venueId,
+      resTimeTypes = Seq(ReservationTimeType("18:00:00", "TABLE_TYPE_DOES_NOT_EXIST"))
+    ) match {
+      case Failure(exception) =>
+        withClue("RuntimeException not found:") {
+          exception.isInstanceOf[RuntimeException] shouldEqual true
+        }
+        exception.getMessage shouldEqual ResyClientErrorMessages.cantFindResMsg
+      case _ =>
+        fail("Failure not found")
+    }
+  }
+
+  it should "not find an available reservation where time doesn't match and table type does" in new Fixture {
+    when(resyApi.getReservations(resDetails.date, resDetails.partySize, resDetails.venueId))
+      .thenReturn(Future(Source.fromResource("getReservations.json").mkString))
+
+    resyClient.retryFindReservation(
+      date         = resDetails.date,
+      partySize    = resDetails.partySize,
+      venueId      = resDetails.venueId,
+      resTimeTypes = Seq(ReservationTimeType("12:34:56", "TABLE_TYPE5"))
     ) match {
       case Failure(exception) =>
         withClue("RuntimeException not found:") {
@@ -172,10 +240,10 @@ class ResyClientSpec extends AnyFlatSpec with Matchers {
 object ResyClientSpec {
 
   val resDetails: ReservationDetails = ReservationDetails(
-    date              = "2099-01-30",
-    partySize         = 2,
-    venueId           = 1,
-    preferredResTimes = Seq("17:00:00")
+    date         = "2099-01-30",
+    partySize    = 2,
+    venueId      = 1,
+    resTimeTypes = Seq(ReservationTimeType("18:00:00", "TABLE_TYPE5"))
   )
 
   val configId = "CONFIG_ID"
