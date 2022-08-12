@@ -50,6 +50,9 @@ object ResyBookingBot {
     system.scheduler.scheduleOnce(millisUntilTomorrow millis)(
       ResyBookingWorkflow.run(resyClient, resDetails)
     )
+
+    println("Shutting down Resy Booking Bot at " + DateTime.now)
+    System.exit(0)
   }
 }
 

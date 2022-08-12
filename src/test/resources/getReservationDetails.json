@@ -1,0 +1,12 @@
+{
+  "user": {
+    "payment_methods": [
+      {
+        "id": 42
+      }
+    ]
+  },
+  "book_token": {
+    "value": "BOOK_TOKEN"
+  }
+}

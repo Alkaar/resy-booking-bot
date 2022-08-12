@@ -1,8 +1,7 @@
 package com.resy
 
 import org.joda.time.DateTime
-import play.api.libs.json.JsResult.Exception
-import play.api.libs.json.{JsArray, JsError, JsValue, Json}
+import play.api.libs.json.{JsArray, JsValue, Json}
 
 import scala.annotation.tailrec
 import scala.concurrent.Await
@@ -11,6 +10,8 @@ import scala.language.postfixOps
 import scala.util.{Failure, Success, Try}
 
 class ResyClient(resyApi: ResyApi) {
+
+  import ResyClientErrorMessages._
 
   /** Tries to find a reservation based on the priority list of requested reservations times. Due to
     * race condition of when the bot runs and when the times become available, retry may be
@@ -38,30 +39,31 @@ class ResyClient(resyApi: ResyApi) {
   ): Try[String] = {
     val dateTimeStart = DateTime.now.getMillis
 
-    val findResResp = Await.result(
-      awaitable = resyApi.getReservations(date, partySize, venueId),
-      atMost    = 5 seconds
-    )
+    val reservationTimesResp = Try {
+      val response = Await.result(
+        awaitable = resyApi.getReservations(date, partySize, venueId),
+        atMost    = 5 seconds
+      )
 
-    println(s"${DateTime.now} URL Response: $findResResp")
+      println(s"${DateTime.now} URL Response: $response")
 
-    // Searching this JSON structure...
-    // {"results": {"venues": [{"slots": [{...}, {...}]}]}}
-    val results = Try(
-      (Json.parse(findResResp) \ "results" \ "venues" \ 0 \ "slots").get
+      // Searching this JSON structure...
+      // {"results": {"venues": [{"slots": [{...}, {...}]}]}}
+      (Json.parse(response) \ "results" \ "venues" \ 0 \ "slots").get
         .as[JsArray]
         .value
-    )
+        .toSeq
+    }
 
     val timeLeftToRetry = millisToRetry - (DateTime.now.getMillis - dateTimeStart)
 
-    results match {
+    reservationTimesResp match {
       case Success(reservationTimes) =>
-        Success(findReservationTime(reservationTimes.toSeq, preferredResTimes))
+        findReservationTime(reservationTimes, preferredResTimes)
       case Failure(_) if timeLeftToRetry > 0 =>
         retryFindReservation(date, partySize, venueId, preferredResTimes, timeLeftToRetry)
       case _ =>
-        throw new RuntimeException("Could not find a reservation for the given time(s)")
+        Failure(new RuntimeException(cantFindResMsg))
     }
   }
 
@@ -76,15 +78,15 @@ class ResyClient(resyApi: ResyApi) {
     *   The paymentMethodId and the bookingToken of the reservation
     */
   def getReservationDetails(configId: String, date: String, partySize: Int): Try[BookingDetails] = {
-    val resDetailsResp = Await.result(
-      awaitable = resyApi.getReservationDetails(configId, date, partySize),
-      atMost    = 5 seconds
-    )
+    val bookingDetailsResp = Try {
+      val response = Await.result(
+        awaitable = resyApi.getReservationDetails(configId, date, partySize),
+        atMost    = 5 seconds
+      )
 
-    println(s"${DateTime.now} URL Response: $resDetailsResp")
+      println(s"${DateTime.now} URL Response: $response")
 
-    val results = Try {
-      val resDetails = Json.parse(resDetailsResp)
+      val resDetails = Json.parse(response)
 
       // Searching this JSON structure...
       // {"user": {"payment_methods": [{"id": 42, ...}]}}
@@ -105,11 +107,11 @@ class ResyClient(resyApi: ResyApi) {
       BookingDetails(paymentMethodId.toInt, bookToken)
     }
 
-    results match {
+    bookingDetailsResp match {
       case Success(bookingDetails) =>
         Success(bookingDetails)
       case _ =>
-        throw new RuntimeException("Unknown error occurred")
+        Failure(new RuntimeException(unknownErrorMsg))
     }
   }
 
@@ -122,27 +124,29 @@ class ResyClient(resyApi: ResyApi) {
     *   Unique identifier of the confirmed booking
     */
   def bookReservation(paymentMethodId: Int, bookToken: String): Try[String] = {
-    val bookResResp = Await.result(
-      awaitable = resyApi.postReservation(paymentMethodId, bookToken),
-      atMost    = 5 seconds
-    )
-
-    println(s"${DateTime.now} URL Response: $bookResResp")
-
-    // Searching this JSON structure...
-    // {"resy_token": "RESY_TOKEN", ...}
-    val results =
-      Try(
-        (Json.parse(bookResResp) \ "resy_token").get.toString
-          .drop(1)
-          .dropRight(1)
+    val resyTokenResp = Try {
+      val response = Await.result(
+        awaitable = resyApi.postReservation(paymentMethodId, bookToken),
+        atMost    = 5 seconds
       )
 
-    results match {
+      println(s"${DateTime.now} URL Response: $response")
+
+      // Searching this JSON structure...
+      // {"resy_token": "RESY_TOKEN", ...}
+      (Json.parse(response) \ "resy_token").get.toString
+        .drop(1)
+        .dropRight(1)
+    }
+
+    resyTokenResp match {
       case Success(resyToken) =>
+        println(s"Successfully sniped reservation at ${DateTime.now}")
+        println(s"Resy token is $resyToken")
         Success(resyToken)
       case _ =>
-        throw new RuntimeException("Unknown error occurred")
+        println(s"Could not snipe reservation at ${DateTime.now}")
+        Failure(new RuntimeException(resNoLongerAvailMsg))
     }
   }
 
@@ -150,10 +154,10 @@ class ResyClient(resyApi: ResyApi) {
   private[this] def findReservationTime(
     reservationTimes: Seq[JsValue],
     timePref: Seq[String]
-  ): String = {
+  ): Try[String] = {
 
     // Searching a list of JSON objects with this JSON structure...
-    // {"config": {"token": "CONFIG_ID"}, "date": {"start": "2022-01-30 17:00:00"}}
+    // {"config": {"token": "CONFIG_ID"}, "date": {"start": "2099-01-30 17:00:00"}}
     val results =
       Try(
         (reservationTimes
@@ -164,13 +168,19 @@ class ResyClient(resyApi: ResyApi) {
     results match {
       case Success(configId) =>
         println(s"${DateTime.now} Config Id: $configId")
-        configId
+        Success(configId)
       case Failure(_) if timePref.nonEmpty =>
         findReservationTime(reservationTimes, timePref.tail)
       case _ =>
-        throw Exception(JsError("Could not find a reservation for the given time(s)"))
+        Failure(new RuntimeException(cantFindResMsg))
     }
   }
 }
 
-case class BookingDetails(paymentMethodId: Int, bookingToken: String)
+object ResyClientErrorMessages {
+  val cantFindResMsg      = "Could not find a reservation for the given time(s)"
+  val unknownErrorMsg     = "Unknown error occurred"
+  val resNoLongerAvailMsg = "Reservation no longer available"
+}
+
+final case class BookingDetails(paymentMethodId: Int, bookingToken: String)

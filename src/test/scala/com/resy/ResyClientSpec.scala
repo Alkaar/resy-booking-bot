@@ -8,8 +8,9 @@ import org.scalatest.matchers.should.Matchers
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.concurrent.duration._
+import scala.io.Source
 import scala.language.postfixOps
-import scala.util.Success
+import scala.util.{Failure, Success}
 
 class ResyClientSpec extends AnyFlatSpec with Matchers {
 
@@ -23,82 +24,95 @@ class ResyClientSpec extends AnyFlatSpec with Matchers {
   behavior of "ResyClientSpec"
   it should "find an available reservation" in new Fixture {
     when(resyApi.getReservations(resDetails.date, resDetails.partySize, resDetails.venueId))
-      .thenReturn(
-        Future(
-          """{"results": {"venues": [{"slots": [{"config": {"token": "CONFIG_ID1"}, "date": {"start": "2022-01-30 16:00:00"}}, {"config": {"token": "CONFIG_ID2"}, "date": {"start": "2022-01-30 17:00:00"}}]}]}}"""
-        )
-      )
-
-    resyClient.retryFindReservation(
-      date              = resDetails.date,
-      partySize         = resDetails.partySize,
-      venueId           = resDetails.venueId,
-      preferredResTimes = resDetails.preferredResTimes
-    ) shouldEqual Success("CONFIG_ID2")
-  }
-
-  it should "find an available reservation that is not the highest priority" in new Fixture {
-    when(resyApi.getReservations(resDetails.date, resDetails.partySize, resDetails.venueId))
-      .thenReturn(
-        Future(
-          """{"results": {"venues": [{"slots": [{"config": {"token": "CONFIG_ID1"}, "date": {"start": "2022-01-30 16:00:00"}}, {"config": {"token": "CONFIG_ID2"}, "date": {"start": "2022-01-30 17:00:00"}}]}]}}"""
-        )
-      )
-
-    resyClient.retryFindReservation(
-      date              = resDetails.date,
-      partySize         = resDetails.partySize,
-      venueId           = resDetails.venueId,
-      preferredResTimes = Seq("15:00:00", "17:00:00")
-    ) shouldEqual Success("CONFIG_ID2")
-  }
-
-  it should "find an available reservation after retrying" in new Fixture {
-    when(resyApi.getReservations(resDetails.date, resDetails.partySize, resDetails.venueId))
-      .thenReturn(Future(""))
-      .thenReturn(
-        Future(
-          """{"results": {"venues": [{"slots": [{"config": {"token": "CONFIG_ID1"}, "date": {"start": "2022-01-30 16:00:00"}}, {"config": {"token": "CONFIG_ID2"}, "date": {"start": "2022-01-30 17:00:00"}}]}]}}"""
-        )
-      )
+      .thenReturn(Future(Source.fromResource("getReservations.json").mkString))
 
     resyClient.retryFindReservation(
       date              = resDetails.date,
       partySize         = resDetails.partySize,
       venueId           = resDetails.venueId,
       preferredResTimes = resDetails.preferredResTimes,
-      millisToRetry     = (1 seconds).toMillis
+      millisToRetry     = (.1 seconds).toMillis
     ) shouldEqual Success("CONFIG_ID2")
-
-    verify(resyApi, Mockito.atLeast(2)).getReservations(
-      resDetails.date,
-      resDetails.partySize,
-      resDetails.venueId
-    )
   }
 
-  it should "not find an available reservation" in new Fixture {
+  it should "find an available reservation that is not the highest priority" in new Fixture {
+    when(resyApi.getReservations(resDetails.date, resDetails.partySize, resDetails.venueId))
+      .thenReturn(Future(Source.fromResource("getReservations.json").mkString))
+
+    resyClient.retryFindReservation(
+      date              = resDetails.date,
+      partySize         = resDetails.partySize,
+      venueId           = resDetails.venueId,
+      preferredResTimes = Seq("15:00:00", "17:00:00"),
+      millisToRetry     = (.1 seconds).toMillis
+    ) shouldEqual Success("CONFIG_ID2")
+  }
+
+  it should "find an available reservation after retrying" in new Fixture {
+    when(resyApi.getReservations(resDetails.date, resDetails.partySize, resDetails.venueId))
+      .thenReturn(Future(""))
+      .thenReturn(Future(Source.fromResource("getReservations.json").mkString))
+
+    resyClient.retryFindReservation(
+      date              = resDetails.date,
+      partySize         = resDetails.partySize,
+      venueId           = resDetails.venueId,
+      preferredResTimes = resDetails.preferredResTimes,
+      millisToRetry     = (.1 seconds).toMillis
+    ) shouldEqual Success("CONFIG_ID2")
+
+    verify(resyApi, Mockito.times(2))
+      .getReservations(
+        date      = resDetails.date,
+        partySize = resDetails.partySize,
+        venueId   = resDetails.venueId
+      )
+  }
+
+  it should "not find an available reservation due to bad response" in new Fixture {
     when(resyApi.getReservations(resDetails.date, resDetails.partySize, resDetails.venueId))
       .thenReturn(Future(""))
 
-    an[RuntimeException] shouldBe thrownBy {
-      resyClient.retryFindReservation(
-        date              = resDetails.date,
-        partySize         = resDetails.partySize,
-        venueId           = resDetails.venueId,
-        preferredResTimes = resDetails.preferredResTimes,
-        millisToRetry     = (.1 seconds).toMillis
-      )
+    resyClient.retryFindReservation(
+      date              = resDetails.date,
+      partySize         = resDetails.partySize,
+      venueId           = resDetails.venueId,
+      preferredResTimes = resDetails.preferredResTimes,
+      millisToRetry     = (.1 seconds).toMillis
+    ) match {
+      case Failure(exception) =>
+        withClue("RuntimeException not found:") {
+          exception.isInstanceOf[RuntimeException] shouldEqual true
+        }
+        exception.getMessage shouldEqual ResyClientErrorMessages.cantFindResMsg
+      case _ =>
+        fail("Failure not found")
+    }
+  }
+
+  it should "not find an available reservation in a list of reservations" in new Fixture {
+    when(resyApi.getReservations(resDetails.date, resDetails.partySize, resDetails.venueId))
+      .thenReturn(Future(Source.fromResource("getReservations.json").mkString))
+
+    resyClient.retryFindReservation(
+      date              = resDetails.date,
+      partySize         = resDetails.partySize,
+      venueId           = resDetails.venueId,
+      preferredResTimes = Seq("18:00:00")
+    ) match {
+      case Failure(exception) =>
+        withClue("RuntimeException not found:") {
+          exception.isInstanceOf[RuntimeException] shouldEqual true
+        }
+        exception.getMessage shouldEqual ResyClientErrorMessages.cantFindResMsg
+      case _ =>
+        fail("Failure not found")
     }
   }
 
   it should "get reservation details" in new Fixture {
     when(resyApi.getReservationDetails(configId, resDetails.date, resDetails.partySize))
-      .thenReturn(
-        Future(
-          """{"user": {"payment_methods": [{"id": 42}]}, "book_token": {"value": "BOOK_TOKEN"}}"""
-        )
-      )
+      .thenReturn(Future(Source.fromResource("getReservationDetails.json").mkString))
 
     resyClient.getReservationDetails(
       configId  = configId,
@@ -107,26 +121,28 @@ class ResyClientSpec extends AnyFlatSpec with Matchers {
     ) shouldEqual Success(BookingDetails(42, "BOOK_TOKEN"))
   }
 
-  it should "not get reservation details" in new Fixture {
+  it should "not get reservation details due to bad response" in new Fixture {
     when(resyApi.getReservationDetails(configId, resDetails.date, resDetails.partySize))
       .thenReturn(Future(""))
 
-    an[RuntimeException] shouldBe thrownBy {
-      resyClient.getReservationDetails(
-        configId  = configId,
-        date      = resDetails.date,
-        partySize = resDetails.partySize
-      )
+    resyClient.getReservationDetails(
+      configId  = configId,
+      date      = resDetails.date,
+      partySize = resDetails.partySize
+    ) match {
+      case Failure(exception) =>
+        withClue("RuntimeException not found:") {
+          exception.isInstanceOf[RuntimeException] shouldEqual true
+        }
+        exception.getMessage shouldEqual ResyClientErrorMessages.unknownErrorMsg
+      case _ =>
+        fail("Failure not found")
     }
   }
 
   it should "book reservation" in new Fixture {
     when(resyApi.postReservation(paymentMethodId, bookToken))
-      .thenReturn(
-        Future(
-          """{"resy_token": "RESY_TOKEN"}"""
-        )
-      )
+      .thenReturn(Future(Source.fromResource("bookReservation.json").mkString))
 
     resyClient.bookReservation(
       paymentMethodId = paymentMethodId,
@@ -134,15 +150,21 @@ class ResyClientSpec extends AnyFlatSpec with Matchers {
     ) shouldEqual Success("RESY_TOKEN")
   }
 
-  it should "not book reservation" in new Fixture {
+  it should "not book reservation due to bad response" in new Fixture {
     when(resyApi.postReservation(paymentMethodId, bookToken))
       .thenReturn(Future(""))
 
-    an[RuntimeException] shouldBe thrownBy {
-      resyClient.bookReservation(
-        paymentMethodId = paymentMethodId,
-        bookToken       = bookToken
-      )
+    resyClient.bookReservation(
+      paymentMethodId = paymentMethodId,
+      bookToken       = bookToken
+    ) match {
+      case Failure(exception) =>
+        withClue("RuntimeException not found:") {
+          exception.isInstanceOf[RuntimeException] shouldEqual true
+        }
+        exception.getMessage shouldEqual ResyClientErrorMessages.resNoLongerAvailMsg
+      case _ =>
+        fail("Failure not found")
     }
   }
 }
