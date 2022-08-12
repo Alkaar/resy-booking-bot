@@ -2,12 +2,14 @@ package com.resy
 
 import org.joda.time.DateTime
 
+import scala.util.Try
+
 object ResyBookingWorkflow {
 
   def run(
     resyClient: ResyClient,
     resDetails: ReservationDetails
-  ): Unit = {
+  ): Try[String] = {
     println(s"Attempting to snipe reservation at ${DateTime.now}")
 
     for {
@@ -26,12 +28,6 @@ object ResyBookingWorkflow {
         bookingDetails.paymentMethodId,
         bookingDetails.bookingToken
       )
-    } yield {
-      println(s"Successfully sniped reservation at ${DateTime.now}")
-      println(s"Resy token is $resyToken")
-    }
-
-    println("Shutting down Resy Booking Bot at " + DateTime.now)
-    System.exit(0)
+    } yield resyToken
   }
 }

@@ -1,0 +1,26 @@
+{
+  "results": {
+    "venues": [
+      {
+        "slots": [
+          {
+            "config": {
+              "token": "CONFIG_ID1"
+            },
+            "date": {
+              "start": "2022-01-30 16:00:00"
+            }
+          },
+          {
+            "config": {
+              "token": "CONFIG_ID2"
+            },
+            "date": {
+              "start": "2022-01-30 17:00:00"
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

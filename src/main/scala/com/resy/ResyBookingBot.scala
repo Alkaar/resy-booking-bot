@@ -50,12 +50,15 @@ object ResyBookingBot {
     system.scheduler.scheduleOnce(millisUntilTomorrow millis)(
       ResyBookingWorkflow.run(resyClient, resDetails)
     )
+
+    println("Shutting down Resy Booking Bot at " + DateTime.now)
+    System.exit(0)
   }
 }
 
-final private case class ResyKeys(apiKey: String, authToken: String)
+final case class ResyKeys(apiKey: String, authToken: String)
 
-final private case class ReservationDetails(
+final case class ReservationDetails(
   date: String,
   partySize: Int,
   venueId: Int,
