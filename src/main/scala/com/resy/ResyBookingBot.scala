@@ -30,24 +30,41 @@ object ResyBookingBot {
     resTimeTypes = ???
   )
 
+  private val snipeTime = SnipeTime(
+    // Hour of the day when reservations become available and when you want to snipe
+    hours = ???,
+    // Minute of the day when reservations become available and when you want to snipe
+    minutes = ???
+  )
+
   def main(args: Array[String]): Unit = {
-    val dateTimeNow = DateTime.now
     println("Starting Resy Booking Bot")
 
     val resyApi    = new ResyApi(resyKeys)
     val resyClient = new ResyClient(resyApi)
 
-    val system              = ActorSystem("System")
-    val startOfTomorrow     = dateTimeNow.withTimeAtStartOfDay.plusDays(1).getMillis
-    val millisUntilTomorrow = startOfTomorrow - dateTimeNow.getMillis - 1000
+    val system      = ActorSystem("System")
+    val dateTimeNow = DateTime.now
+    val todaysSnipeTime = dateTimeNow
+      .withHourOfDay(snipeTime.hours)
+      .withMinuteOfHour(snipeTime.minutes)
+      .withSecondOfMinute(0)
+      .withMillisOfSecond(0)
+
+    val nextSnipeTime =
+      if (todaysSnipeTime.getMillis > dateTimeNow.getMillis) todaysSnipeTime
+      else todaysSnipeTime.plusDays(1)
+
+    val millisUntilTomorrow = nextSnipeTime.getMillis - DateTime.now.getMillis - 1000
     val hoursRemaining      = millisUntilTomorrow / 1000 / 60 / 60
     val minutesRemaining    = millisUntilTomorrow / 1000 / 60 - hoursRemaining * 60
     val secondsRemaining =
       millisUntilTomorrow / 1000 - hoursRemaining * 60 * 60 - minutesRemaining * 60
 
     println(s"Current time: ${DateTime.now}")
+    println(s"Next snipe time: $nextSnipeTime")
     println(
-      s"Sleeping for $hoursRemaining hours, $minutesRemaining minutes and $secondsRemaining seconds"
+      s"Sleeping for $hoursRemaining hours, $minutesRemaining minutes, and $secondsRemaining seconds"
     )
 
     system.scheduler.scheduleOnce(millisUntilTomorrow millis) {
@@ -76,3 +93,5 @@ object ReservationTimeType {
     ReservationTimeType(reservationTime, Some(tableType))
   }
 }
+
+final case class SnipeTime(hours: Int, minutes: Int)
