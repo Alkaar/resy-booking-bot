@@ -10,16 +10,23 @@ and shutdown, outputting whether is it was or wasn't successful in getting a res
 You need to provide a few values before running the bot.  These values are located in the ResyBookingBot object at the
 top. There are comments above the variables with what needs to be provided before it can be used, but I'll list it here
 as well for clarity.
-* apiKey - Your user profile API key. Can be found when logging into Resy if you have the web console open.
+* apiKey - Your user profile API key. Can be found when logging into Resy if you have the web console open  in your 
+* headers called `authorization`.
 * auth_token - Your user profile authentication token when logging into Resy. Can be found when logging into Resy if 
-you have the web console open.
+you have the web console open in your headers called `x-resy-auth-token`.
 * date - The date you want to make the reservation in YYYY-MM-DD format.  This should be set to the day after the last 
 available day with restaurant reservations as this is the day you want to snipe for a reservation once they become 
 available.
 * partySize - Size of the party reservation
 * venueId - The id of the restaurant you want to make the reservation at.  Can be found when viewing available
 reservations for a restaurant if you have the web console open.
-* preferredResTimes - Priority list of reservation times in military time HH:MM:SS format
+* resTimeTypes - Priority list of reservation times and table types. Time is in military time HH:MM:SS format. This 
+allows full flexibility on your reservation preferences. For example, your priority order of reservations can be...
+  * 17:00 - Patio
+  * 18:00 - Indoor
+  * 17:30 - Patio
+
+  If you have no preference on table type, then simply don't set it and the bot will pick from whatever is available.
 
 The main entry point of the bot is in ResyBookingBot under the main function. Upon running the bot, it will
 automatically sleep until midnight the night you are running the bot. At midnight, it will wake up and attempt to query

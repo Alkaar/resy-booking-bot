@@ -10,9 +10,11 @@ import scala.language.postfixOps
 object ResyBookingBot {
 
   private val resyKeys = ResyKeys(
-    // Your user profile API key which can be found via your browser DevTools
+    // Your user profile API key which can be found via your browser web console in your headers
+    // called "authorization"
     apiKey = ???,
-    // Your user profile authentication token which can be found via your browser DevTools
+    // Your user profile authentication token which can be found via your browser web console in
+    // your headers called "x-resy-auth-token"
     authToken = ???
   )
 
@@ -23,8 +25,9 @@ object ResyBookingBot {
     partySize = ???,
     // Unique identifier of the restaurant where you want to make the reservation
     venueId = ???,
-    // Priority list of reservation times in military time HH:MM:SS format
-    preferredResTimes = ???
+    // Priority list of reservation times and table types. Time is in military time HH:MM:SS format.
+    // If no preference on table type, then simply don't set it.
+    resTimeTypes = ???
   )
 
   def main(args: Array[String]): Unit = {
@@ -47,12 +50,12 @@ object ResyBookingBot {
       s"Sleeping for $hoursRemaining hours, $minutesRemaining minutes and $secondsRemaining seconds"
     )
 
-    system.scheduler.scheduleOnce(millisUntilTomorrow millis)(
+    system.scheduler.scheduleOnce(millisUntilTomorrow millis) {
       ResyBookingWorkflow.run(resyClient, resDetails)
-    )
 
-    println("Shutting down Resy Booking Bot at " + DateTime.now)
-    System.exit(0)
+      println("Shutting down Resy Booking Bot at " + DateTime.now)
+      System.exit(0)
+    }
   }
 }
 
@@ -62,5 +65,14 @@ final case class ReservationDetails(
   date: String,
   partySize: Int,
   venueId: Int,
-  preferredResTimes: Seq[String]
+  resTimeTypes: Seq[ReservationTimeType]
 )
+
+final case class ReservationTimeType(reservationTime: String, tableType: Option[String] = None)
+
+object ReservationTimeType {
+
+  def apply(reservationTime: String, tableType: String): ReservationTimeType = {
+    ReservationTimeType(reservationTime, Some(tableType))
+  }
+}
