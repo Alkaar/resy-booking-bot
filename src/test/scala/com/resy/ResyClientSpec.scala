@@ -96,9 +96,30 @@ class ResyClientSpec extends AnyFlatSpec with Matchers {
     ) shouldEqual Success("CONFIG_ID2")
   }
 
-  it should "find an available reservation after retrying" in new Fixture {
+  it should "find an available reservation after a bad response with retrying" in new Fixture {
     when(resyApi.getReservations(resDetails.date, resDetails.partySize, resDetails.venueId))
       .thenReturn(Future(""))
+      .thenReturn(Future(Source.fromResource("getReservations.json").mkString))
+
+    resyClient.retryFindReservation(
+      date          = resDetails.date,
+      partySize     = resDetails.partySize,
+      venueId       = resDetails.venueId,
+      resTimeTypes  = resDetails.resTimeTypes,
+      millisToRetry = (.1 seconds).toMillis
+    ) shouldEqual Success("CONFIG_ID5")
+
+    verify(resyApi, Mockito.times(2))
+      .getReservations(
+        date      = resDetails.date,
+        partySize = resDetails.partySize,
+        venueId   = resDetails.venueId
+      )
+  }
+
+  it should "find an available reservation after a response of no reservations with retrying" in new Fixture {
+    when(resyApi.getReservations(resDetails.date, resDetails.partySize, resDetails.venueId))
+      .thenReturn(Future(Source.fromResource("getReservationsNoneAvailable.json").mkString))
       .thenReturn(Future(Source.fromResource("getReservations.json").mkString))
 
     resyClient.retryFindReservation(

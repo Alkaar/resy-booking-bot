@@ -59,9 +59,9 @@ class ResyClient(resyApi: ResyApi) {
     val timeLeftToRetry = millisToRetry - (DateTime.now.getMillis - dateTimeStart)
 
     reservationTimesResp match {
-      case Success(reservationTimes) =>
+      case Success(reservationTimes) if reservationTimes.nonEmpty =>
         findReservationTime(reservationTimes, resTimeTypes)
-      case Failure(_) if timeLeftToRetry > 0 =>
+      case _ if timeLeftToRetry > 0 =>
         retryFindReservation(date, partySize, venueId, resTimeTypes, timeLeftToRetry)
       case _ =>
         Failure(new RuntimeException(cantFindResMsg))
