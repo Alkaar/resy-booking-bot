@@ -1,16 +1,18 @@
 package com.resy
 
-import org.joda.time.DateTime
+import org.apache.logging.log4j.scala.Logging
 
 import scala.util.Try
 
-object ResyBookingWorkflow {
+object ResyBookingWorkflow extends Logging {
 
   def run(
     resyClient: ResyClient,
     resDetails: ReservationDetails
   ): Try[String] = {
-    println(s"Attempting to snipe reservation at ${DateTime.now}")
+    logger.info("Taking the shot...")
+    logger.info("(҂‾ ▵‾)︻デ═一 (˚▽˚’!)/")
+    logger.info(s"Attempting to snipe reservation")
 
     for {
       configId <- resyClient.retryFindReservation(

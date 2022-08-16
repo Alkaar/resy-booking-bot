@@ -1,13 +1,14 @@
 package com.resy
 
 import akka.actor.ActorSystem
+import org.apache.logging.log4j.scala.Logging
 import org.joda.time.DateTime
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import scala.language.postfixOps
 
-object ResyBookingBot {
+object ResyBookingBot extends Logging {
 
   private val resyKeys = ResyKeys(
     // Your user profile API key which can be found via your browser web console in your headers
@@ -38,7 +39,7 @@ object ResyBookingBot {
   )
 
   def main(args: Array[String]): Unit = {
-    println("Starting Resy Booking Bot")
+    logger.info("Starting Resy Booking Bot")
 
     val resyApi    = new ResyApi(resyKeys)
     val resyClient = new ResyClient(resyApi)
@@ -61,16 +62,15 @@ object ResyBookingBot {
     val secondsRemaining =
       millisUntilTomorrow / 1000 - hoursRemaining * 60 * 60 - minutesRemaining * 60
 
-    println(s"Current time: ${DateTime.now}")
-    println(s"Next snipe time: $nextSnipeTime")
-    println(
+    logger.info(s"Next snipe time: $nextSnipeTime")
+    logger.info(
       s"Sleeping for $hoursRemaining hours, $minutesRemaining minutes, and $secondsRemaining seconds"
     )
 
     system.scheduler.scheduleOnce(millisUntilTomorrow millis) {
       ResyBookingWorkflow.run(resyClient, resDetails)
 
-      println("Shutting down Resy Booking Bot at " + DateTime.now)
+      logger.info("Shutting down Resy Booking Bot")
       System.exit(0)
     }
   }
