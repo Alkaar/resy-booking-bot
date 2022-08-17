@@ -2,7 +2,7 @@ package com.resy
 
 import akka.actor.ActorSystem
 import com.resy.ResyApi.{sendGetRequest, sendPostRequest}
-import org.joda.time.DateTime
+import org.apache.logging.log4j.scala.Logging
 import play.api.libs.ws.WSBodyWritables.writeableOf_String
 import play.api.libs.ws.ahc.AhcWSClient
 
@@ -73,7 +73,7 @@ class ResyApi(resyToken: ResyKeys) {
   }
 }
 
-object ResyApi {
+object ResyApi extends Logging {
   implicit private val system: ActorSystem = ActorSystem()
   private val ws                           = AhcWSClient()
 
@@ -85,7 +85,7 @@ object ResyApi {
     val url =
       s"https://$baseUrl?${stringifyQueryParams(queryParams)}"
 
-    println(s"\n${DateTime.now} URL Request: $url")
+    logger.debug(s"URL Request: $url")
 
     ws.url(url)
       .withHttpHeaders(createHeaders(resyKeys): _*)
@@ -101,8 +101,8 @@ object ResyApi {
     val url  = s"https://$baseUrl"
     val post = stringifyQueryParams(queryParams)
 
-    println(s"\n${DateTime.now} URL Request: $url")
-    println(s"${DateTime.now} Post Params: $post")
+    logger.debug(s"URL Request: $url")
+    logger.debug(s"Post Params: $post")
 
     ws.url(url)
       .withHttpHeaders(

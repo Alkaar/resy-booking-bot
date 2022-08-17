@@ -1,5 +1,6 @@
 package com.resy
 
+import org.apache.logging.log4j.scala.Logging
 import org.joda.time.DateTime
 import play.api.libs.json.{JsArray, JsValue, Json}
 
@@ -9,7 +10,7 @@ import scala.concurrent.duration._
 import scala.language.postfixOps
 import scala.util.{Failure, Success, Try}
 
-class ResyClient(resyApi: ResyApi) {
+class ResyClient(resyApi: ResyApi) extends Logging {
 
   import ResyClientErrorMessages._
 
@@ -46,7 +47,7 @@ class ResyClient(resyApi: ResyApi) {
         atMost    = 5 seconds
       )
 
-      println(s"${DateTime.now} URL Response: $response")
+      logger.debug(s"URL Response: $response")
 
       // Searching this JSON structure...
       // {"results": {"venues": [{"slots": [{...}, {...}]}]}}
@@ -85,7 +86,7 @@ class ResyClient(resyApi: ResyApi) {
         atMost    = 5 seconds
       )
 
-      println(s"${DateTime.now} URL Response: $response")
+      logger.debug(s"URL Response: $response")
 
       val resDetails = Json.parse(response)
 
@@ -94,7 +95,7 @@ class ResyClient(resyApi: ResyApi) {
       val paymentMethodId =
         (resDetails \ "user" \ "payment_methods" \ 0 \ "id").get.toString
 
-      println(s"${DateTime.now} Payment Method Id: $paymentMethodId")
+      logger.info(s"Payment Method Id: $paymentMethodId")
 
       // Searching this JSON structure...
       // {"book_token": {"value": "BOOK_TOKEN", ...}}
@@ -103,7 +104,7 @@ class ResyClient(resyApi: ResyApi) {
           .drop(1)
           .dropRight(1)
 
-      println(s"${DateTime.now} Book Token: $bookToken")
+      logger.info(s"Book Token: $bookToken")
 
       BookingDetails(paymentMethodId.toInt, bookToken)
     }
@@ -131,7 +132,7 @@ class ResyClient(resyApi: ResyApi) {
         atMost    = 5 seconds
       )
 
-      println(s"${DateTime.now} URL Response: $response")
+      logger.debug(s"URL Response: $response")
 
       // Searching this JSON structure...
       // {"resy_token": "RESY_TOKEN", ...}
@@ -142,11 +143,15 @@ class ResyClient(resyApi: ResyApi) {
 
     resyTokenResp match {
       case Success(resyToken) =>
-        println(s"Successfully sniped reservation at ${DateTime.now}")
-        println(s"Resy token is $resyToken")
+        logger.info("Headshot!")
+        logger.info("(҂‾ ▵‾)︻デ═一 (× _ ×#")
+        logger.info("Successfully sniped reservation")
+        logger.info(s"Resy token is $resyToken")
         Success(resyToken)
       case _ =>
-        println(s"Could not snipe reservation at ${DateTime.now}")
+        logger.info("Missed the shot!")
+        logger.info("""┻━┻ ︵ \(°□°)/ ︵ ┻━┻""")
+        logger.info("Could not snipe reservation")
         Failure(new RuntimeException(resNoLongerAvailMsg))
     }
   }
@@ -176,7 +181,7 @@ class ResyClient(resyApi: ResyApi) {
 
     results match {
       case Success(configId) =>
-        println(s"${DateTime.now} Config Id: $configId")
+        logger.info(s"Config Id: $configId")
         Success(configId)
       case Failure(_) if resTimeType.nonEmpty =>
         findReservationTime(reservationTimes, resTimeType.tail)
