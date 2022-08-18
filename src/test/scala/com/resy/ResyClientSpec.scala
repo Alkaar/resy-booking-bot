@@ -199,6 +199,26 @@ class ResyClientSpec extends AnyFlatSpec with Matchers {
     }
   }
 
+  it should "not find an available reservation where neither time nor table type matches" in new Fixture {
+    when(resyApi.getReservations(resDetails.date, resDetails.partySize, resDetails.venueId))
+      .thenReturn(Future(Source.fromResource("getReservations.json").mkString))
+
+    resyClient.retryFindReservation(
+      date         = resDetails.date,
+      partySize    = resDetails.partySize,
+      venueId      = resDetails.venueId,
+      resTimeTypes = Seq(ReservationTimeType("12:34:56", "TABLE_TYPE_DOES_NOT_EXIST"))
+    ) match {
+      case Failure(exception) =>
+        withClue("RuntimeException not found:") {
+          exception.isInstanceOf[RuntimeException] shouldEqual true
+        }
+        exception.getMessage shouldEqual ResyClientErrorMessages.cantFindResMsg
+      case _ =>
+        fail("Failure not found")
+    }
+  }
+
   it should "get reservation details" in new Fixture {
     when(resyApi.getReservationDetails(configId, resDetails.date, resDetails.partySize))
       .thenReturn(Future(Source.fromResource("getReservationDetails.json").mkString))
