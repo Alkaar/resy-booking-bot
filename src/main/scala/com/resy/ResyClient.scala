@@ -12,6 +12,9 @@ import scala.util.{Failure, Success, Try}
 
 class ResyClient(resyApi: ResyApi) extends Logging {
 
+  private type ReservationMap = Map[String, TableTypeMap]
+  private type TableTypeMap   = Map[String, String]
+
   import ResyClientErrorMessages._
 
   /** Tries to find a reservation based on the priority list of requested reservations times. Due to
@@ -41,7 +44,7 @@ class ResyClient(resyApi: ResyApi) extends Logging {
   ): Try[String] = {
     val dateTimeStart = DateTime.now.getMillis
 
-    val reservationTimesResp = Try {
+    val reservationTimesResp: Try[ReservationMap] = Try {
       val response = Await.result(
         awaitable = resyApi.getReservations(date, partySize, venueId),
         atMost    = 5 seconds
@@ -49,22 +52,27 @@ class ResyClient(resyApi: ResyApi) extends Logging {
 
       logger.debug(s"URL Response: $response")
 
-      // Searching this JSON structure...
+      // Searching this JSON list structure...
       // {"results": {"venues": [{"slots": [{...}, {...}]}]}}
-      (Json.parse(response) \ "results" \ "venues" \ 0 \ "slots").get
-        .as[JsArray]
-        .value
-        .toSeq
+      buildReservationMap(
+        (Json.parse(response) \ "results" \ "venues" \ 0 \ "slots").get
+          .as[JsArray]
+          .value
+          .toSeq
+      )
     }
 
     val timeLeftToRetry = millisToRetry - (DateTime.now.getMillis - dateTimeStart)
 
     reservationTimesResp match {
-      case Success(reservationTimes) if reservationTimes.nonEmpty =>
-        findReservationTime(reservationTimes, resTimeTypes)
+      case Success(reservationMap) if reservationMap.nonEmpty =>
+        findReservationTime(reservationMap, resTimeTypes)
       case _ if timeLeftToRetry > 0 =>
         retryFindReservation(date, partySize, venueId, resTimeTypes, timeLeftToRetry)
       case _ =>
+        logger.info("Missed the shot!")
+        logger.info("""┻━┻ ︵ \(°□°)/ ︵ ┻━┻""")
+        logger.info(cantFindResMsg)
         Failure(new RuntimeException(cantFindResMsg))
     }
   }
@@ -113,6 +121,9 @@ class ResyClient(resyApi: ResyApi) extends Logging {
       case Success(bookingDetails) =>
         Success(bookingDetails)
       case _ =>
+        logger.info("Missed the shot!")
+        logger.info("""┻━┻ ︵ \(°□°)/ ︵ ┻━┻""")
+        logger.info(unknownErrorMsg)
         Failure(new RuntimeException(unknownErrorMsg))
     }
   }
@@ -151,43 +162,51 @@ class ResyClient(resyApi: ResyApi) extends Logging {
       case _ =>
         logger.info("Missed the shot!")
         logger.info("""┻━┻ ︵ \(°□°)/ ︵ ┻━┻""")
-        logger.info("Could not snipe reservation")
+        logger.info(resNoLongerAvailMsg)
         Failure(new RuntimeException(resNoLongerAvailMsg))
     }
   }
 
   @tailrec
   private[this] def findReservationTime(
-    reservationTimes: Seq[JsValue],
-    resTimeType: Seq[ReservationTimeType]
+    reservationMap: ReservationMap,
+    resTimeTypes: Seq[ReservationTimeType]
   ): Try[String] = {
-
-    // Searching a list of JSON objects with this JSON structure...
-    // {"config": {"type":"TABLE_TYPE","token": "CONFIG_ID"},
-    // "date": {"start": "2099-01-30 17:00:00"}}
-    val results =
-      Try(
-        (reservationTimes
-          .filter(jsonObj =>
-            (jsonObj \ "date" \ "start").get.toString
-              .contains(resTimeType.head.reservationTime) &&
-              resTimeType.head.tableType.forall(tableType =>
-                (jsonObj \ "config" \ "type").get.toString.toLowerCase
-                  .contains(tableType.toLowerCase)
-              )
-          )
-          .head \ "config" \ "token").get.toString.drop(1).dropRight(1)
-      )
+    val results = reservationMap.get(resTimeTypes.head.reservationTime).flatMap { tableTypes =>
+      resTimeTypes.head.tableType match {
+        case Some(tableType) => tableTypes.get(tableType.toLowerCase)
+        case None            => Some(tableTypes.head._2)
+      }
+    }
 
     results match {
-      case Success(configId) =>
+      case Some(configId) =>
         logger.info(s"Config Id: $configId")
         Success(configId)
-      case Failure(_) if resTimeType.nonEmpty =>
-        findReservationTime(reservationTimes, resTimeType.tail)
+      case None if resTimeTypes.tail.nonEmpty =>
+        findReservationTime(reservationMap, resTimeTypes.tail)
       case _ =>
         Failure(new RuntimeException(cantFindResMsg))
     }
+  }
+
+  private[this] def buildReservationMap(reservationTimes: Seq[JsValue]): ReservationMap = {
+    // Build map from these JSON objects...
+    // {"config": {"type":"TABLE_TYPE", "token": "CONFIG_ID"},
+    // "date": {"start": "2099-01-30 17:00:00"}}
+    reservationTimes
+      .foldLeft(Map.empty[String, TableTypeMap]) { case (reservationMap, reservation) =>
+        val time =
+          (reservation \ "date" \ "start").get.toString.dropWhile(_ != ' ').drop(1).dropRight(1)
+        val config    = reservation \ "config"
+        val tableType = (config \ "type").get.toString.toLowerCase.drop(1).dropRight(1)
+        val configId  = (config \ "token").get.toString.drop(1).dropRight(1)
+
+        if (!reservationMap.contains(time))
+          reservationMap.updated(time, Map(tableType -> configId))
+        else
+          reservationMap.updated(time, reservationMap(time).updated(tableType, configId))
+      }
   }
 }
 
