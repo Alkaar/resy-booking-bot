@@ -11,5 +11,6 @@ libraryDependencies ++= Seq(
   "org.apache.logging.log4j" %% "log4j-api-scala" % "12.0",
   "org.apache.logging.log4j"  % "log4j-core"      % "2.13.0" % Runtime,
   "org.scalatest"            %% "scalatest"       % "3.2.12" % Test,
-  "org.mockito"               % "mockito-core"    % "4.6.1"  % Test
+  "org.mockito"               % "mockito-core"    % "4.6.1"  % Test,
+  "org.slf4j"                 % "slf4j-nop"       % "1.7.36" // Removes failed to load class warning
 )
