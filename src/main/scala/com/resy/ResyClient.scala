@@ -186,6 +186,9 @@ class ResyClient(resyApi: ResyApi) extends Logging {
       case None if resTimeTypes.tail.nonEmpty =>
         findReservationTime(reservationMap, resTimeTypes.tail)
       case _ =>
+        logger.info("Missed the shot!")
+        logger.info("""┻━┻ ︵ \(°□°)/ ︵ ┻━┻""")
+        logger.info(cantFindResMsg)
         Failure(new RuntimeException(cantFindResMsg))
     }
   }
