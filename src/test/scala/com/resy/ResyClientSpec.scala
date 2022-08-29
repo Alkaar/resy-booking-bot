@@ -26,7 +26,7 @@ class ResyClientSpec extends AnyFlatSpec with Matchers {
     when(resyApi.getReservations(resDetails.date, resDetails.partySize, resDetails.venueId))
       .thenReturn(Future(Source.fromResource("getReservations.json").mkString))
 
-    resyClient.retryFindReservation(
+    resyClient.findReservations(
       date          = resDetails.date,
       partySize     = resDetails.partySize,
       venueId       = resDetails.venueId,
@@ -39,7 +39,7 @@ class ResyClientSpec extends AnyFlatSpec with Matchers {
     when(resyApi.getReservations(resDetails.date, resDetails.partySize, resDetails.venueId))
       .thenReturn(Future(Source.fromResource("getReservations.json").mkString))
 
-    resyClient.retryFindReservation(
+    resyClient.findReservations(
       date      = resDetails.date,
       partySize = resDetails.partySize,
       venueId   = resDetails.venueId,
@@ -55,7 +55,7 @@ class ResyClientSpec extends AnyFlatSpec with Matchers {
     when(resyApi.getReservations(resDetails.date, resDetails.partySize, resDetails.venueId))
       .thenReturn(Future(Source.fromResource("getReservations.json").mkString))
 
-    resyClient.retryFindReservation(
+    resyClient.findReservations(
       date      = resDetails.date,
       partySize = resDetails.partySize,
       venueId   = resDetails.venueId,
@@ -70,7 +70,7 @@ class ResyClientSpec extends AnyFlatSpec with Matchers {
     when(resyApi.getReservations(resDetails.date, resDetails.partySize, resDetails.venueId))
       .thenReturn(Future(Source.fromResource("getReservations.json").mkString))
 
-    resyClient.retryFindReservation(
+    resyClient.findReservations(
       date      = resDetails.date,
       partySize = resDetails.partySize,
       venueId   = resDetails.venueId,
@@ -85,7 +85,7 @@ class ResyClientSpec extends AnyFlatSpec with Matchers {
     when(resyApi.getReservations(resDetails.date, resDetails.partySize, resDetails.venueId))
       .thenReturn(Future(Source.fromResource("getReservations.json").mkString))
 
-    resyClient.retryFindReservation(
+    resyClient.findReservations(
       date      = resDetails.date,
       partySize = resDetails.partySize,
       venueId   = resDetails.venueId,
@@ -101,7 +101,7 @@ class ResyClientSpec extends AnyFlatSpec with Matchers {
       .thenReturn(Future(""))
       .thenReturn(Future(Source.fromResource("getReservations.json").mkString))
 
-    resyClient.retryFindReservation(
+    resyClient.findReservations(
       date          = resDetails.date,
       partySize     = resDetails.partySize,
       venueId       = resDetails.venueId,
@@ -122,7 +122,7 @@ class ResyClientSpec extends AnyFlatSpec with Matchers {
       .thenReturn(Future(Source.fromResource("getReservationsNoneAvailable.json").mkString))
       .thenReturn(Future(Source.fromResource("getReservations.json").mkString))
 
-    resyClient.retryFindReservation(
+    resyClient.findReservations(
       date          = resDetails.date,
       partySize     = resDetails.partySize,
       venueId       = resDetails.venueId,
@@ -142,7 +142,7 @@ class ResyClientSpec extends AnyFlatSpec with Matchers {
     when(resyApi.getReservations(resDetails.date, resDetails.partySize, resDetails.venueId))
       .thenReturn(Future(""))
 
-    resyClient.retryFindReservation(
+    resyClient.findReservations(
       date          = resDetails.date,
       partySize     = resDetails.partySize,
       venueId       = resDetails.venueId,
@@ -153,7 +153,7 @@ class ResyClientSpec extends AnyFlatSpec with Matchers {
         withClue("RuntimeException not found:") {
           exception.isInstanceOf[RuntimeException] shouldEqual true
         }
-        exception.getMessage shouldEqual ResyClientErrorMessages.cantFindResMsg
+        exception.getMessage shouldEqual ResyClientErrorMessages.noAvailableResMsg
       case _ =>
         fail("Failure not found")
     }
@@ -163,7 +163,7 @@ class ResyClientSpec extends AnyFlatSpec with Matchers {
     when(resyApi.getReservations(resDetails.date, resDetails.partySize, resDetails.venueId))
       .thenReturn(Future(Source.fromResource("getReservations.json").mkString))
 
-    resyClient.retryFindReservation(
+    resyClient.findReservations(
       date         = resDetails.date,
       partySize    = resDetails.partySize,
       venueId      = resDetails.venueId,
@@ -183,7 +183,7 @@ class ResyClientSpec extends AnyFlatSpec with Matchers {
     when(resyApi.getReservations(resDetails.date, resDetails.partySize, resDetails.venueId))
       .thenReturn(Future(Source.fromResource("getReservations.json").mkString))
 
-    resyClient.retryFindReservation(
+    resyClient.findReservations(
       date         = resDetails.date,
       partySize    = resDetails.partySize,
       venueId      = resDetails.venueId,
@@ -203,7 +203,7 @@ class ResyClientSpec extends AnyFlatSpec with Matchers {
     when(resyApi.getReservations(resDetails.date, resDetails.partySize, resDetails.venueId))
       .thenReturn(Future(Source.fromResource("getReservations.json").mkString))
 
-    resyClient.retryFindReservation(
+    resyClient.findReservations(
       date         = resDetails.date,
       partySize    = resDetails.partySize,
       venueId      = resDetails.venueId,

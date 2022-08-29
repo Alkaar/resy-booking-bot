@@ -30,7 +30,9 @@ class ResyBookingWorkflowSpec extends AnyFlatSpec with Matchers {
     when(resyApi.postReservation(paymentMethodId, bookToken))
       .thenReturn(Future(Source.fromResource("bookReservation.json").mkString))
 
-    ResyBookingWorkflow.run(resyClient, resDetails) shouldEqual Success("RESY_TOKEN")
+    val resyBookingWorkflow = new ResyBookingWorkflow(resyClient, resDetails)
+
+    resyBookingWorkflow.run() shouldEqual Success("RESY_TOKEN")
   }
 
   it should "find and book an available reservation with retrying" in new Fixture {
@@ -44,7 +46,9 @@ class ResyBookingWorkflowSpec extends AnyFlatSpec with Matchers {
       .thenReturn(Future(""))
       .thenReturn(Future(Source.fromResource("bookReservation.json").mkString))
 
-    ResyBookingWorkflow.run(resyClient, resDetails) shouldEqual Success("RESY_TOKEN")
+    val resyBookingWorkflow = new ResyBookingWorkflow(resyClient, resDetails)
+
+    resyBookingWorkflow.run() shouldEqual Success("RESY_TOKEN")
 
     verify(resyApi, Mockito.times(2))
       .getReservations(
@@ -77,7 +81,9 @@ class ResyBookingWorkflowSpec extends AnyFlatSpec with Matchers {
     when(resyApi.postReservation(paymentMethodId, bookToken))
       .thenReturn(Future(""))
 
-    ResyBookingWorkflow.run(resyClient, resDetails, 0) match {
+    val resyBookingWorkflow = new ResyBookingWorkflow(resyClient, resDetails)
+
+    resyBookingWorkflow.run(0) match {
       case Failure(exception) =>
         withClue("RuntimeException not found:") {
           exception.isInstanceOf[RuntimeException] shouldEqual true
@@ -102,6 +108,56 @@ class ResyBookingWorkflowSpec extends AnyFlatSpec with Matchers {
       )
 
     verify(resyApi, Mockito.times(1))
+      .postReservation(
+        paymentMethodId = paymentMethodId,
+        bookToken       = bookToken
+      )
+  }
+
+  it should "fail to find any available reservations and short circuit" in new Fixture {
+
+    val newResDetails =
+      resDetails.copy(resTimeTypes =
+        Seq(ReservationTimeType("12:34:56", "TABLE_TYPE_DOES_NOT_EXIST"))
+      )
+    when(
+      resyApi.getReservations(newResDetails.date, newResDetails.partySize, newResDetails.venueId)
+    )
+      .thenReturn(Future(Source.fromResource("getReservations.json").mkString))
+
+    when(resyApi.getReservationDetails(configId, newResDetails.date, newResDetails.partySize))
+      .thenReturn(Future(Source.fromResource("getReservationDetails.json").mkString))
+
+    when(resyApi.postReservation(paymentMethodId, bookToken))
+      .thenReturn(Future(Source.fromResource("bookReservation.json").mkString))
+
+    val resyBookingWorkflow = new ResyBookingWorkflow(resyClient, newResDetails)
+
+    resyBookingWorkflow.run() match {
+      case Failure(exception) =>
+        withClue("RuntimeException not found:") {
+          exception.isInstanceOf[RuntimeException] shouldEqual true
+        }
+        exception.getMessage shouldEqual ResyClientErrorMessages.cantFindResMsg
+      case _ =>
+        fail("Failure not found")
+    }
+
+    verify(resyApi, Mockito.times(1))
+      .getReservations(
+        date      = newResDetails.date,
+        partySize = newResDetails.partySize,
+        venueId   = newResDetails.venueId
+      )
+
+    verify(resyApi, Mockito.times(0))
+      .getReservationDetails(
+        configId  = configId,
+        date      = newResDetails.date,
+        partySize = newResDetails.partySize
+      )
+
+    verify(resyApi, Mockito.times(0))
       .postReservation(
         paymentMethodId = paymentMethodId,
         bookToken       = bookToken

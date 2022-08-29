@@ -41,8 +41,9 @@ object ResyBookingBot extends Logging {
   def main(args: Array[String]): Unit = {
     logger.info("Starting Resy Booking Bot")
 
-    val resyApi    = new ResyApi(resyKeys)
-    val resyClient = new ResyClient(resyApi)
+    val resyApi             = new ResyApi(resyKeys)
+    val resyClient          = new ResyClient(resyApi)
+    val resyBookingWorkflow = new ResyBookingWorkflow(resyClient, resDetails)
 
     val system      = ActorSystem("System")
     val dateTimeNow = DateTime.now
@@ -68,7 +69,7 @@ object ResyBookingBot extends Logging {
     )
 
     system.scheduler.scheduleOnce(millisUntilTomorrow millis) {
-      ResyBookingWorkflow.run(resyClient, resDetails)
+      resyBookingWorkflow.run()
 
       logger.info("Shutting down Resy Booking Bot")
       System.exit(0)
