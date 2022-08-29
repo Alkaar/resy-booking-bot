@@ -34,48 +34,21 @@ class ResyClient(resyApi: ResyApi) extends Logging {
     * @return
     *   configId which is the unique identifier for the reservation
     */
-  @tailrec
-  final def retryFindReservation(
+  def findReservations(
     date: String,
     partySize: Int,
     venueId: Int,
     resTimeTypes: Seq[ReservationTimeType],
     millisToRetry: Long = (10 seconds).toMillis
-  ): Try[String] = {
-    val dateTimeStart = DateTime.now.getMillis
-
-    val reservationTimesResp: Try[ReservationMap] = Try {
-      val response = Await.result(
-        awaitable = resyApi.getReservations(date, partySize, venueId),
-        atMost    = 5 seconds
-      )
-
-      logger.debug(s"URL Response: $response")
-
-      // Searching this JSON list structure...
-      // {"results": {"venues": [{"slots": [{...}, {...}]}]}}
-      buildReservationMap(
-        (Json.parse(response) \ "results" \ "venues" \ 0 \ "slots").get
-          .as[JsArray]
-          .value
-          .toSeq
-      )
-    }
-
-    val timeLeftToRetry = millisToRetry - (DateTime.now.getMillis - dateTimeStart)
-
-    reservationTimesResp match {
-      case Success(reservationMap) if reservationMap.nonEmpty =>
-        findReservationTime(reservationMap, resTimeTypes)
-      case _ if timeLeftToRetry > 0 =>
-        retryFindReservation(date, partySize, venueId, resTimeTypes, timeLeftToRetry)
-      case _ =>
-        logger.info("Missed the shot!")
-        logger.info("""┻━┻ ︵ \(°□°)/ ︵ ┻━┻""")
-        logger.info(cantFindResMsg)
-        Failure(new RuntimeException(cantFindResMsg))
-    }
-  }
+  ): Try[String] =
+    retryFindReservations(
+      date,
+      partySize,
+      venueId,
+      resTimeTypes,
+      millisToRetry,
+      DateTime.now.getMillis
+    )
 
   /** Get details of the reservation
     * @param configId
@@ -168,6 +141,46 @@ class ResyClient(resyApi: ResyApi) extends Logging {
   }
 
   @tailrec
+  private[this] def retryFindReservations(
+    date: String,
+    partySize: Int,
+    venueId: Int,
+    resTimeTypes: Seq[ReservationTimeType],
+    millisToRetry: Long,
+    dateTimeStart: Long
+  ): Try[String] = {
+    val reservationTimesResp: Try[ReservationMap] = Try {
+      val response = Await.result(
+        awaitable = resyApi.getReservations(date, partySize, venueId),
+        atMost    = 5 seconds
+      )
+
+      logger.debug(s"URL Response: $response")
+
+      // Searching this JSON list structure...
+      // {"results": {"venues": [{"slots": [{...}, {...}]}]}}
+      buildReservationMap(
+        (Json.parse(response) \ "results" \ "venues" \ 0 \ "slots").get
+          .as[JsArray]
+          .value
+          .toSeq
+      )
+    }
+
+    reservationTimesResp match {
+      case Success(reservationMap) if reservationMap.nonEmpty =>
+        findReservationTime(reservationMap, resTimeTypes)
+      case _ if millisToRetry > DateTime.now.getMillis - dateTimeStart =>
+        retryFindReservations(date, partySize, venueId, resTimeTypes, millisToRetry, dateTimeStart)
+      case _ =>
+        logger.info("Missed the shot!")
+        logger.info("""┻━┻ ︵ \(°□°)/ ︵ ┻━┻""")
+        logger.info(noAvailableResMsg)
+        Failure(new RuntimeException(noAvailableResMsg))
+    }
+  }
+
+  @tailrec
   private[this] def findReservationTime(
     reservationMap: ReservationMap,
     resTimeTypes: Seq[ReservationTimeType]
@@ -214,6 +227,7 @@ class ResyClient(resyApi: ResyApi) extends Logging {
 }
 
 object ResyClientErrorMessages {
+  val noAvailableResMsg   = "Could not find any available reservations"
   val cantFindResMsg      = "Could not find a reservation for the given time(s)"
   val unknownErrorMsg     = "Unknown error occurred"
   val resNoLongerAvailMsg = "Reservation no longer available"

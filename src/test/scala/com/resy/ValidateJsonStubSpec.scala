@@ -13,8 +13,10 @@ class ValidateJsonStubSpec extends AnyFlatSpec with Matchers with Logging {
 
   behavior of "ValidateJsonStubSpec"
   it should "validate JSON stubs are valid JSON" in {
-    val rootPath  = new File(".").getCanonicalPath
-    val jsonFiles = new File(s"$rootPath/src/test/resources").listFiles.toSeq
+    val rootPath = new File(".").getCanonicalPath
+    val jsonFiles =
+      new File(s"$rootPath/src/test/resources").listFiles.toSeq
+        .filter(_.getName.endsWith(".json"))
 
     for {
       jsonFile <- jsonFiles
