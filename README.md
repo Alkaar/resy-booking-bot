@@ -19,7 +19,7 @@ last available day with restaurant reservations as this is the day you want to s
 available.
 * **partySize** - Size of the party reservation
 * **venueId** - The id of the restaurant you want to make the reservation at.  Can be found when viewing available
-reservations for a restaurant if you have the web console open.
+reservations for a restaurant as a query parameter in the `/find` API call if you have the web console open.
 * **resTimeTypes** - Priority list of reservation times and table types. Time is in military time HH:MM:SS format. This 
 allows full flexibility on your reservation preferences. For example, your priority order of reservations can be...
   * 17:00 - Patio
