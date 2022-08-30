@@ -33,10 +33,10 @@ jobs:
         run: sbt 'all compile Test/compile'
 
       - name: Run Scalafix
-        run: sbt 'scalafixAll --check'
+        run: sbt scalafixAll --check
 
       - name: Run tests
-        run: sbt 'test'
+        run: sbt test
 
       - name: Publish JUnit Test Report
         if: always()
