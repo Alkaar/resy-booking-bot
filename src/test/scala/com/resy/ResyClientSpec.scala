@@ -15,8 +15,10 @@ import scala.util.{Failure, Success}
 class ResyClientSpec extends AnyFlatSpec with Matchers {
 
   trait Fixture {
+    // scalafix:off
     val resyApi: ResyApi = mock(classOf[ResyApi])
     val resyClient       = new ResyClient(resyApi)
+    // scalafix:on
   }
 
   import ResyClientSpec._
@@ -150,12 +152,12 @@ class ResyClientSpec extends AnyFlatSpec with Matchers {
       millisToRetry = (.1 seconds).toMillis
     ) match {
       case Failure(exception) =>
-        withClue("RuntimeException not found:") {
-          exception.isInstanceOf[RuntimeException] shouldEqual true
+        exception match {
+          case _: RuntimeException =>
+            exception.getMessage shouldEqual ResyClientErrorMessages.noAvailableResMsg
+          case _ => fail("RuntimeException not found")
         }
-        exception.getMessage shouldEqual ResyClientErrorMessages.noAvailableResMsg
-      case _ =>
-        fail("Failure not found")
+      case _ => fail("Failure not found")
     }
   }
 
@@ -170,12 +172,12 @@ class ResyClientSpec extends AnyFlatSpec with Matchers {
       resTimeTypes = Seq(ReservationTimeType("18:00:00", "TABLE_TYPE_DOES_NOT_EXIST"))
     ) match {
       case Failure(exception) =>
-        withClue("RuntimeException not found:") {
-          exception.isInstanceOf[RuntimeException] shouldEqual true
+        exception match {
+          case _: RuntimeException =>
+            exception.getMessage shouldEqual ResyClientErrorMessages.cantFindResMsg
+          case _ => fail("RuntimeException not found")
         }
-        exception.getMessage shouldEqual ResyClientErrorMessages.cantFindResMsg
-      case _ =>
-        fail("Failure not found")
+      case _ => fail("Failure not found")
     }
   }
 
@@ -190,12 +192,12 @@ class ResyClientSpec extends AnyFlatSpec with Matchers {
       resTimeTypes = Seq(ReservationTimeType("12:34:56", "TABLE_TYPE5"))
     ) match {
       case Failure(exception) =>
-        withClue("RuntimeException not found:") {
-          exception.isInstanceOf[RuntimeException] shouldEqual true
+        exception match {
+          case _: RuntimeException =>
+            exception.getMessage shouldEqual ResyClientErrorMessages.cantFindResMsg
+          case _ => fail("RuntimeException not found")
         }
-        exception.getMessage shouldEqual ResyClientErrorMessages.cantFindResMsg
-      case _ =>
-        fail("Failure not found")
+      case _ => fail("Failure not found")
     }
   }
 
@@ -210,12 +212,12 @@ class ResyClientSpec extends AnyFlatSpec with Matchers {
       resTimeTypes = Seq(ReservationTimeType("12:34:56", "TABLE_TYPE_DOES_NOT_EXIST"))
     ) match {
       case Failure(exception) =>
-        withClue("RuntimeException not found:") {
-          exception.isInstanceOf[RuntimeException] shouldEqual true
+        exception match {
+          case _: RuntimeException =>
+            exception.getMessage shouldEqual ResyClientErrorMessages.cantFindResMsg
+          case _ => fail("RuntimeException not found")
         }
-        exception.getMessage shouldEqual ResyClientErrorMessages.cantFindResMsg
-      case _ =>
-        fail("Failure not found")
+      case _ => fail("Failure not found")
     }
   }
 
@@ -240,12 +242,12 @@ class ResyClientSpec extends AnyFlatSpec with Matchers {
       partySize = resDetails.partySize
     ) match {
       case Failure(exception) =>
-        withClue("RuntimeException not found:") {
-          exception.isInstanceOf[RuntimeException] shouldEqual true
+        exception match {
+          case _: RuntimeException =>
+            exception.getMessage shouldEqual ResyClientErrorMessages.unknownErrorMsg
+          case _ => fail("RuntimeException not found")
         }
-        exception.getMessage shouldEqual ResyClientErrorMessages.unknownErrorMsg
-      case _ =>
-        fail("Failure not found")
+      case _ => fail("Failure not found")
     }
   }
 
@@ -268,12 +270,12 @@ class ResyClientSpec extends AnyFlatSpec with Matchers {
       bookToken       = bookToken
     ) match {
       case Failure(exception) =>
-        withClue("RuntimeException not found:") {
-          exception.isInstanceOf[RuntimeException] shouldEqual true
+        exception match {
+          case _: RuntimeException =>
+            exception.getMessage shouldEqual ResyClientErrorMessages.resNoLongerAvailMsg
+          case _ => fail("RuntimeException not found")
         }
-        exception.getMessage shouldEqual ResyClientErrorMessages.resNoLongerAvailMsg
-      case _ =>
-        fail("Failure not found")
+      case _ => fail("Failure not found")
     }
   }
 }

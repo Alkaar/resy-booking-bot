@@ -13,8 +13,10 @@ import scala.util.{Failure, Success}
 class ResyBookingWorkflowSpec extends AnyFlatSpec with Matchers {
 
   trait Fixture {
+    // scalafix:off
     val resyApi: ResyApi = mock(classOf[ResyApi])
     val resyClient       = new ResyClient(resyApi)
+    // scalafix:on
   }
 
   import ResyBookingWorkflowSpec._
@@ -85,12 +87,12 @@ class ResyBookingWorkflowSpec extends AnyFlatSpec with Matchers {
 
     resyBookingWorkflow.run(0) match {
       case Failure(exception) =>
-        withClue("RuntimeException not found:") {
-          exception.isInstanceOf[RuntimeException] shouldEqual true
+        exception match {
+          case _: RuntimeException =>
+            exception.getMessage shouldEqual ResyClientErrorMessages.resNoLongerAvailMsg
+          case _ => fail("RuntimeException not found")
         }
-        exception.getMessage shouldEqual ResyClientErrorMessages.resNoLongerAvailMsg
-      case _ =>
-        fail("Failure not found")
+      case _ => fail("Failure not found")
     }
 
     verify(resyApi, Mockito.times(1))
@@ -135,12 +137,12 @@ class ResyBookingWorkflowSpec extends AnyFlatSpec with Matchers {
 
     resyBookingWorkflow.run() match {
       case Failure(exception) =>
-        withClue("RuntimeException not found:") {
-          exception.isInstanceOf[RuntimeException] shouldEqual true
+        exception match {
+          case _: RuntimeException =>
+            exception.getMessage shouldEqual ResyClientErrorMessages.cantFindResMsg
+          case _ => fail("RuntimeException not found")
         }
-        exception.getMessage shouldEqual ResyClientErrorMessages.cantFindResMsg
-      case _ =>
-        fail("Failure not found")
+      case _ => fail("Failure not found")
     }
 
     verify(resyApi, Mockito.times(1))
@@ -166,6 +168,8 @@ class ResyBookingWorkflowSpec extends AnyFlatSpec with Matchers {
 }
 
 object ResyBookingWorkflowSpec {
+  val resyApi: ResyApi = mock(classOf[ResyApi])
+  val resyClient       = new ResyClient(resyApi)
 
   val resDetails: ReservationDetails = ReservationDetails(
     date         = "2099-01-30",
