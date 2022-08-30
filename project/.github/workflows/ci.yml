@@ -1,9 +1,10 @@
 name: CI
-#Check versions
-on:
-  push:
-    branches: [master]
-  pull_request:
+
+on: [push, pull_request]
+#on:
+#  push:
+#    branches: [master]
+#  pull_request:
 
 concurrency:
   group: ci-${{ github.ref }}
