@@ -1,10 +1,9 @@
 name: CI
 
-on: [push, pull_request]
-#on:
-#  push:
+on:
+  push:
 #    branches: [master]
-#  pull_request:
+  pull_request:
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -37,11 +36,10 @@ jobs:
         run: sbt 'scalafixAll --check'
 
       - name: Run tests
-        run: sbt 'all Test/test'
+        run: sbt 'test'
 
       - name: Publish JUnit Test Report
         if: always()
         uses: mikepenz/action-junit-report@v3.3.3
         with:
           report_paths: "**/target/test-reports/*.xml"
-          require_tests: false
