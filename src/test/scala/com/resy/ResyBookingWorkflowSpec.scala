@@ -168,8 +168,6 @@ class ResyBookingWorkflowSpec extends AnyFlatSpec with Matchers {
 }
 
 object ResyBookingWorkflowSpec {
-  val resyApi: ResyApi = mock(classOf[ResyApi])
-  val resyClient       = new ResyClient(resyApi)
 
   val resDetails: ReservationDetails = ReservationDetails(
     date         = "2099-01-30",
