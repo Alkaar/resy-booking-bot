@@ -1,0 +1,45 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  formatting:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v3.0.2
+      - uses: AvaPL/scalafmt-native-formatter@v0.1.2
+
+  tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      SBT_NATIVE_CLIENT: true
+    steps:
+      - uses: actions/checkout@v3.0.2
+      - uses: coursier/cache-action@v6.3.3
+
+      - name: Resolve dependencies
+        run: sbt update
+
+      - name: Compile all sources
+        run: sbt 'all compile Test/compile'
+
+      - name: Run Scalafix
+        run: sbt 'scalafixAll --check'
+
+      - name: Run tests
+        run: sbt test
+
+      - name: Publish JUnit Test Report
+        if: always()
+        uses: mikepenz/action-junit-report@v3.3.3
+        with:
+          report_paths: "**/target/test-reports/*.xml"
