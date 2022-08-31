@@ -29,6 +29,9 @@ jobs:
       - name: Resolve dependencies
         run: sbt update
 
+      - name: Enable coverage instrumentation
+        run: sbt coverage
+
       - name: Compile all sources
         run: sbt 'all compile Test/compile'
 
@@ -43,3 +46,9 @@ jobs:
         uses: mikepenz/action-junit-report@v3.3.3
         with:
           report_paths: "**/target/test-reports/*.xml"
+
+      - name: Generate coverage report
+        run: sbt coverageReport
+
+      - name: Upload coverage report to Codecov
+        uses: codecov/codecov-action@v3
