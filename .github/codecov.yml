@@ -7,7 +7,6 @@ codecov:
 
 # Use code coverage as informational input to code reviews, don't be dogmatic
 # about hitting certain thresholds.
-#
 # https://docs.codecov.io/docs/commit-status
 coverage:
   status:
