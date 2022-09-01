@@ -1,0 +1,20 @@
+# https://docs.codecov.io/docs/codecovyml-reference
+codecov:
+  # Don't wait for other statuses to complete before reporting
+  require_ci_to_pass: no
+  notify:
+    wait_for_ci: no
+
+# Use code coverage as informational input to code reviews, don't be dogmatic
+# about hitting certain thresholds.
+# https://docs.codecov.io/docs/commit-status
+coverage:
+  status:
+    project:
+      default:
+        informational: true
+        if_ci_failed: success
+    patch:
+      default:
+        informational: true
+        if_ci_failed: success
