@@ -43,7 +43,7 @@
     {
       "name": "style",
       "changelogTitle": "🎨 Styles",
-      "description": "Changes that do not affect the meaning of the code (white-space, formatting, missing semi-colons, etc)",
+      "description": "Changes that do not affect the meaning of the code",
       "releaseType": "none",
       "color": "#FFC0CB"
     },
@@ -71,14 +71,14 @@
     {
       "name": "build",
       "changelogTitle": "🚧 Builds",
-      "description": "Changes that affect the build system or external dependencies (example scopes: gulp, broccoli, npm)",
+      "description": "Changes that affect the build system or external dependencies",
       "releaseType": "none",
       "color": "#800080"
     },
     {
       "name": "ci",
       "changelogTitle": "🔁 Continuous Integrations",
-      "description": "Changes to our CI configuration files and scripts (example scopes: Travis, Circle, BrowserStack, SauceLabs)",
+      "description": "Changes to our CI configuration files and scripts",
       "releaseType": "none",
       "color": "#CBC3E3"
     },
