@@ -4,8 +4,10 @@ on:
   workflow_dispatch:
   workflow_run:
     workflows: [CI]
-    types: [completed]
-    branches: [ci/enable-releases-via-auto]
+    types:
+      - completed
+#    types: [completed]
+#    branches: [ci/enable-releases-via-auto]
 #    branches: [master]
 
 concurrency: release
