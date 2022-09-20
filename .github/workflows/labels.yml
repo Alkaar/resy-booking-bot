@@ -3,8 +3,8 @@ name: Auto labels
 on:
   workflow_dispatch:
   push:
-#    paths:
-#      - ".autorc.json"
+    paths:
+      - ".autorc.json"
 
 jobs:
   create:
