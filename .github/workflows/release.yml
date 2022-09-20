@@ -32,7 +32,6 @@ jobs:
           fetch-depth: 0
 
       - uses: coursier/cache-action@v6.3.3
-      - uses: auto-it/sbt
       - uses: auto-it/setup-auto@v1
 
       - name: Create Release
