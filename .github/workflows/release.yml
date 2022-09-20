@@ -14,16 +14,16 @@ on:
 concurrency: release
 
 jobs:
-  echo:
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - env:
-          MESSAGE: ${{ github.event.repository.default_branch }}
-        run: echo $MESSAGE
+#  echo:
+#    runs-on: ubuntu-latest
+#    timeout-minutes: 5
+#    steps:
+#      - env:
+#          MESSAGE: ${{ github.event.repository.default_branch }}
+#        run: echo $MESSAGE
 
   publish:
-    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+#    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     timeout-minutes: 10
     runs-on: ubuntu-latest
     steps:
