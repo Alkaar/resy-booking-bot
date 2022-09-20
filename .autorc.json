@@ -95,13 +95,6 @@
       "description": "Reverts a previous commit",
       "releaseType": "none",
       "color": "#FFAE42"
-    },
-    {
-      "name": "fakelabel",
-      "changelogTitle": "⏪ fakelabel",
-      "description": "Fake test label",
-      "releaseType": "none",
-      "color": "#000000"
     }
   ]
 }
