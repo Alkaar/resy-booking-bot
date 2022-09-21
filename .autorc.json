@@ -1,0 +1,100 @@
+{
+  "plugins": [
+    "sbt",
+    "released"
+  ],
+  "versionBranches": "version-",
+  "shipit": {
+    "noChangelog": true
+  },
+  "canary": {
+    "force": true
+  },
+  "noDefaultLabels": true,
+  "labels": [
+    {
+      "name": "breaking",
+      "changelogTitle": "💥 Breaking change",
+      "description": "Major change, breaking API",
+      "releaseType": "major",
+      "color": "#FF0000"
+    },
+    {
+      "name": "feat",
+      "changelogTitle": "🚀 Features",
+      "description": "A new feature",
+      "releaseType": "minor",
+      "color": "#00FF00"
+    },
+    {
+      "name": "fix",
+      "changelogTitle": "🐛 Bug Fixes",
+      "description": "A bug fix",
+      "releaseType": "patch",
+      "color": "#FFA500"
+    },
+    {
+      "name": "docs",
+      "changelogTitle": "📝 Documentation",
+      "description": "Documentation only changes",
+      "releaseType": "none",
+      "color": "#ADD8E6"
+    },
+    {
+      "name": "style",
+      "changelogTitle": "🎨 Styles",
+      "description": "Changes that do not affect the meaning of the code",
+      "releaseType": "none",
+      "color": "#FFC0CB"
+    },
+    {
+      "name": "refactor",
+      "changelogTitle": "🛠 Code Refactoring",
+      "description": "A code change that neither fixes a bug nor adds a feature",
+      "releaseType": "none",
+      "color": "#808080"
+    },
+    {
+      "name": "perf",
+      "changelogTitle": "🏎 Performance Improvements",
+      "description": "A code change that improves performance",
+      "releaseType": "patch",
+      "color": "#FFFF00"
+    },
+    {
+      "name": "test",
+      "changelogTitle": "🧪 Tests",
+      "description": "Adding missing tests or correcting existing tests",
+      "releaseType": "none",
+      "color": "#0000FF"
+    },
+    {
+      "name": "build",
+      "changelogTitle": "🚧 Builds",
+      "description": "Changes that affect the build system or external dependencies",
+      "releaseType": "none",
+      "color": "#800080"
+    },
+    {
+      "name": "ci",
+      "changelogTitle": "🔁 Continuous Integrations",
+      "description": "Changes to our CI configuration files and scripts",
+      "releaseType": "none",
+      "color": "#CBC3E3"
+    },
+    {
+      "name": "chore",
+      "changelogTitle": "🏠 Chores",
+      "description": "Other changes that don't modify src or test files",
+      "releaseType": "none",
+      "color": "#964B00"
+    },
+    {
+      "name": "revert",
+      "changelogTitle": "⏪ Reverts",
+      "description": "Reverts a previous commit",
+      "releaseType": "none",
+      "color": "#FFAE42"
+    }
+  ]
+}
