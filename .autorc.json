@@ -87,7 +87,8 @@
       "changelogTitle": "🏠 Chores",
       "description": "Other changes that don't modify src or test files",
       "releaseType": "none",
-      "color": "#964B00"
+      "color": "#964B00",
+      "default": true
     },
     {
       "name": "revert",
