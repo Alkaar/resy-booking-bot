@@ -1,6 +1,7 @@
 package com.resy
 
 import akka.actor.ActorSystem
+import com.resy.ResyConfig._
 import org.apache.logging.log4j.scala.Logging
 import org.joda.time.DateTime
 
@@ -9,34 +10,6 @@ import scala.concurrent.duration._
 import scala.language.postfixOps
 
 object ResyBookingBot extends Logging {
-
-  private val resyKeys = ResyKeys(
-    // Your user profile API key which can be found via your browser web console in your headers
-    // called "authorization"
-    apiKey = ???,
-    // Your user profile authentication token which can be found via your browser web console in
-    // your headers called "x-resy-auth-token"
-    authToken = ???
-  )
-
-  private val resDetails = ReservationDetails(
-    // Date of the reservation in YYYY-MM-DD format
-    date = ???,
-    // Size of the party reservation
-    partySize = ???,
-    // Unique identifier of the restaurant where you want to make the reservation
-    venueId = ???,
-    // Priority list of reservation times and table types. Time is in military time HH:MM:SS format.
-    // If no preference on table type, then simply don't set it.
-    resTimeTypes = ???
-  )
-
-  private val snipeTime = SnipeTime(
-    // Hour of the day when reservations become available and when you want to snipe
-    hours = ???,
-    // Minute of the day when reservations become available and when you want to snipe
-    minutes = ???
-  )
 
   def main(args: Array[String]): Unit = {
     logger.info("Starting Resy Booking Bot")
