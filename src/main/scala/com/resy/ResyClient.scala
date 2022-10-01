@@ -113,7 +113,7 @@ class ResyClient(resyApi: ResyApi) extends Logging {
     val resyTokenResp = Try {
       val response = Await.result(
         awaitable = resyApi.postReservation(paymentMethodId, bookToken),
-        atMost    = 5 seconds
+        atMost    = 10 seconds
       )
 
       logger.debug(s"URL Response: $response")
