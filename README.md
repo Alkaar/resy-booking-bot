@@ -36,14 +36,15 @@ allows full flexibility on your reservation preferences. For example, your prior
 
 ## How it works
 The main entry point of the bot is in the `ResyBookingBot` object under the `main` function. It utilizes the arguments 
-which you need to provide in the `resyConfig.conf` file, located in the `resources` folder.  The bot runs based on the local time of the machine it's 
-running on. Upon running the bot, it will automatically sleep until the specified time. At the specified time, it will 
-wake up and attempt to query for reservations for 10 seconds. This is because sometimes reservations are not available 
-exactly at the same time every day so 10 seconds is to allow for some buffer. Once reservation times are retrieved, it 
-will try to find the best available time slot given your priority list of reservation times. If a time can't be booked, 
-the bot will shutdown here. If a time can be booked, it will make an attempt to snipe it. If a reservation couldn't be 
-booked, and it's still within 10 seconds of the original start time, it will restart the whole workflow and try to find 
-another available reservation. In the event it was unable to get any reservations, the bot will automatically shutdown.
+which you need to provide in the `resyConfig.conf` file, located in the `resources` folder.  The bot runs based on the 
+local time of the machine it's running on. Upon running the bot, it will automatically sleep until the specified time. 
+At the specified time, it will wake up and attempt to query for reservations for 10 seconds. This is because sometimes 
+reservations are not available exactly at the same time every day so 10 seconds is to allow for some buffer. Once 
+reservation times are retrieved, it will try to find the best available time slot given your priority list of 
+reservation times. If a time can't be booked, the bot will shutdown here. If a time can be booked, it will make an 
+attempt to snipe it. If a reservation couldn't be booked, and it's still within 10 seconds of the original start time, 
+it will restart the whole workflow and try to find another available reservation. In the event it was unable to get any 
+reservations, the bot will automatically shutdown.
 
 ## Running the bot
 There are a multitude of ways to run it, but I'll share the two most 
