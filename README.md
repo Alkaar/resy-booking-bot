@@ -11,9 +11,9 @@ snipe a reservation. It will attempt to grab a reservation for a couple of secon
 it was or wasn't successful in getting a reservation.
 
 ## Usage
-You need to provide a few values before running the bot.  These values are located in the `ResyConfig` object. There 
-are comments above the variables with what needs to be provided before it can be used, but I'll list it 
-here as well for clarity.
+You need to provide a few values before running the bot.  You can set these parameters in the `resyConfig.conf` file 
+which is located in the `resources` folder. There are comments above the properties with what needs to be provided 
+before it can be used, but I'll list it here as well for clarity.
 * **apiKey** - Your user profile API key. Can be found when logging into Resy if you have the web console open  in your 
  headers called `authorization`.
 * **auth_token** - Your user profile authentication token when logging into Resy. Can be found when logging into Resy 
@@ -36,7 +36,7 @@ allows full flexibility on your reservation preferences. For example, your prior
 
 ## How it works
 The main entry point of the bot is in the `ResyBookingBot` object under the `main` function. It utilizes the arguments 
-which you need to provide under the `ResyConfig` object.  The bot runs based on the local time of the machine it's 
+which you need to provide in the `resyConfig.conf` file, located in the `resources` folder.  The bot runs based on the local time of the machine it's 
 running on. Upon running the bot, it will automatically sleep until the specified time. At the specified time, it will 
 wake up and attempt to query for reservations for 10 seconds. This is because sometimes reservations are not available 
 exactly at the same time every day so 10 seconds is to allow for some buffer. Once reservation times are retrieved, it 
