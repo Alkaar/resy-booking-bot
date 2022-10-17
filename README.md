@@ -14,25 +14,30 @@ it was or wasn't successful in getting a reservation.
 You need to provide a few values before running the bot.  You can set these parameters in the `resyConfig.conf` file 
 which is located in the `resources` folder. There are comments above the properties with what needs to be provided 
 before it can be used, but I'll list it here as well for clarity.
-* **apiKey** - Your user profile API key. Can be found when logging into Resy if you have the web console open  in your 
- headers called `authorization`.
-* **auth_token** - Your user profile authentication token when logging into Resy. Can be found when logging into Resy 
-if you have the web console open in your headers called `x-resy-auth-token`.
-* **date** - The date you want to make the reservation in YYYY-MM-DD format.  This should be set to the day after the 
-last available day with restaurant reservations as this is the day you want to snipe for a reservation once they become 
-available.
+* **apiKey** - Your user profile API key. Can be found once you're logged into Resy in most `api.resy.com` network 
+calls (i.e. Try they `/find` API call when visiting a restaurant). Open your web console and look for a request header 
+called `authorization`.
+* **auth_token** - Your user profile authentication token when logging into Resy. Can be found once you're logged into 
+Resy in most `api.resy.com` network calls (i.e. Try the `/find` API call when visiting a restaurant). Open your web 
+console and look for a request header called `x-resy-auth-token`.
+* **date** - The date you want to make the reservation in YYYY-MM-DD format. This should be set to the day after the 
+last available day with restaurant reservations as this is the day you want to snipe for a reservation once they 
+become available.
 * **partySize** - Size of the party reservation
-* **venueId** - The id of the restaurant you want to make the reservation at.  Can be found when viewing available
-reservations for a restaurant as a query parameter in the `/find` API call if you have the web console open.
+* **venueId** - The unique identifier of the restaurant you want to make the reservation at. Can be found when viewing 
+available reservations for a restaurant as a query parameter in the `/find` API call if you have the web console open.
 * **resTimeTypes** - Priority list of reservation times and table types. Time is in military time HH:MM:SS format. This 
 allows full flexibility on your reservation preferences. For example, your priority order of reservations can be...
-  * 17:00 - Patio
-  * 18:00 - Indoor
-  * 17:30 - Patio
+  * 18:00 - Dining Room
+  * 18:00 - Patio
+  * 18:15
 
   If you have no preference on table type, then simply don't set it and the bot will pick from whatever is available.
 * **hour** - Hour of the day when reservations become available and when you want to snipe
 * **minute** - Minute of the day when reservations become available and when you want to snipe
+
+Lastly, remember to have a credit card on file in your account. Some reservations require a credit card before making 
+a reservation in case of late cancellations or no-shows. Not having one will result in the snipe to fail!
 
 ## How it works
 The main entry point of the bot is in the `ResyBookingBot` object under the `main` function. It utilizes the arguments 
