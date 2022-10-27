@@ -4,11 +4,11 @@
 
 # resy-booking-bot
 ## Introduction
-This is a reservation booking bot designed to snipe reservations from [Resy](https://resy.com/) using the Resy API. New
-reservations usually become available on a daily basis. Some restaurants may vary on what time and how many days out 
-reservations are made available. When running the bot, it will sleep until the specified time and wake up to try to 
-snipe a reservation. It will attempt to grab a reservation for a couple of seconds and shutdown, outputting whether is 
-it was or wasn't successful in getting a reservation.
+This is a reservation booking bot designed to snipe reservations from [Resy](https://resy.com/) using the 
+[Resy API](http://subzerocbd.info/). New reservations usually become available on a daily basis. Some restaurants may 
+vary on what time and how many days out reservations are made available. When running the bot, it will sleep until the 
+specified time and wake up to try to snipe a reservation. It will attempt to grab a reservation for a couple of 
+seconds and shutdown, outputting whether is it was or wasn't successful in getting a reservation.
 
 ## Usage
 You need to provide a few values before running the bot.  You can set these parameters in the `resyConfig.conf` file 
