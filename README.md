@@ -32,7 +32,8 @@ allows full flexibility on your reservation preferences. For example, your prior
   * 18:00 - Patio
   * 18:15
 
-  If you have no preference on table type, then simply don't set it and the bot will pick from whatever is available.
+  If you have no preference on table type, then simply don't set it and the bot will pick a reservation for that time 
+  slot regardless of the table type.
 * **hour** - Hour of the day when reservations become available and when you want to snipe
 * **minute** - Minute of the day when reservations become available and when you want to snipe
 
