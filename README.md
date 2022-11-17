@@ -62,3 +62,4 @@ configure it to look under `com.resy.ResyBookingBot`.
 sbt instance, then type `run`. It will have some output then bring you back to the sbt prompt. Do not exit out of the 
 sbt prompt as this will kill the bot. The bot is running inside the sbt instance and will wake up at the appropriate 
 time to snipe a reservation.
+- You can run it with Make and Docker by running `make`
