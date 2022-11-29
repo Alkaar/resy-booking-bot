@@ -36,7 +36,7 @@ object ResyBookingBot extends Logging {
       if (todaysSnipeTime.getMillis > dateTimeNow.getMillis) todaysSnipeTime
       else todaysSnipeTime.plusDays(1)
 
-    val millisUntilTomorrow = nextSnipeTime.getMillis - DateTime.now.getMillis - 1000
+    val millisUntilTomorrow = nextSnipeTime.getMillis - DateTime.now.getMillis - 2000
     val hoursRemaining      = millisUntilTomorrow / 1000 / 60 / 60
     val minutesRemaining    = millisUntilTomorrow / 1000 / 60 - hoursRemaining * 60
     val secondsRemaining =
