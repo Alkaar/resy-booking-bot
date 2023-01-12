@@ -21,7 +21,7 @@ called `authorization`.
 * **auth_token** - Your user profile authentication token when logging into Resy. Can be found once you're logged into 
 Resy in most `api.resy.com` network calls (i.e. Try the `/find` API call when visiting a restaurant). Open your web 
 console and look for a request header called `x-resy-auth-token`.
-* **date** - The date the reservation will be on in YYYY-MM-DD format.
+* **date** - The date the reservation will be on in YYYY-MM-DD format. This is in restaurant local Date/Time.
 * **partySize** - Size of the party reservation
 * **venueId** - The unique identifier of the restaurant you want to make the reservation at. Can be found when viewing 
 available reservations for a restaurant as a query parameter in the `/find` API call if you have the web console open.
