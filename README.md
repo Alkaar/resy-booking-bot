@@ -21,22 +21,21 @@ called `authorization`.
 * **auth_token** - Your user profile authentication token when logging into Resy. Can be found once you're logged into 
 Resy in most `api.resy.com` network calls (i.e. Try the `/find` API call when visiting a restaurant). Open your web 
 console and look for a request header called `x-resy-auth-token`.
-* **date** - The date you want to make the reservation in YYYY-MM-DD format. This should be set to the day after the 
-last available day with restaurant reservations as this is the day you want to snipe for a reservation once they 
-become available.
+* **date** - The date the reservation will be on in YYYY-MM-DD format.
 * **partySize** - Size of the party reservation
 * **venueId** - The unique identifier of the restaurant you want to make the reservation at. Can be found when viewing 
 available reservations for a restaurant as a query parameter in the `/find` API call if you have the web console open.
-* **resTimeTypes** - Priority list of reservation times and table types. Time is in military time HH:MM:SS format. This 
-allows full flexibility on your reservation preferences. For example, your priority order of reservations can be...
+* **resTimeTypes** - Priority list of reservation times and table types. Time is in military time HH:MM:SS format in 
+the restaurant's local time. This allows full flexibility on your reservation preferences. For example, your priority 
+order of reservations can be...
   * 18:00 - Dining Room
   * 18:00 - Patio
   * 18:15
 
   If you have no preference on table type, then simply don't set it and the bot will pick a reservation for that time 
   slot regardless of the table type.
-* **hour** - Hour of the day when reservations become available and when you want to snipe
-* **minute** - Minute of the day when reservations become available and when you want to snipe
+* **hour** - Hour of the day in server time when reservations become available and when you want to snipe
+* **minute** - Minute of the day in server time when reservations become available and when you want to snipe
 
 Lastly, remember to have a credit card on file in your account. Some reservations require a credit card before making 
 a reservation in case of late cancellations or no-shows. Not having one will result in the snipe to fail!
