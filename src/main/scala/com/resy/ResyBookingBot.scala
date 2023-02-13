@@ -1,9 +1,10 @@
 package com.resy
 
 import akka.actor.ActorSystem
-import com.resy.ResyConfig._
 import org.apache.logging.log4j.scala.Logging
 import org.joda.time.DateTime
+import pureconfig.ConfigSource
+import pureconfig.generic.auto._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
@@ -13,6 +14,11 @@ object ResyBookingBot extends Logging {
 
   def main(args: Array[String]): Unit = {
     logger.info("Starting Resy Booking Bot")
+
+    val resyConfig = ConfigSource.resources("resyConfig.conf")
+    val resyKeys   = resyConfig.at("resyKeys").loadOrThrow[ResyKeys]
+    val resDetails = resyConfig.at("resDetails").loadOrThrow[ReservationDetails]
+    val snipeTime  = resyConfig.at("snipeTime").loadOrThrow[SnipeTime]
 
     val resyApi             = new ResyApi(resyKeys)
     val resyClient          = new ResyClient(resyApi)
@@ -30,7 +36,7 @@ object ResyBookingBot extends Logging {
       if (todaysSnipeTime.getMillis > dateTimeNow.getMillis) todaysSnipeTime
       else todaysSnipeTime.plusDays(1)
 
-    val millisUntilTomorrow = nextSnipeTime.getMillis - DateTime.now.getMillis - 1000
+    val millisUntilTomorrow = nextSnipeTime.getMillis - DateTime.now.getMillis - 2000
     val hoursRemaining      = millisUntilTomorrow / 1000 / 60 / 60
     val minutesRemaining    = millisUntilTomorrow / 1000 / 60 - hoursRemaining * 60
     val secondsRemaining =
@@ -49,23 +55,3 @@ object ResyBookingBot extends Logging {
     }
   }
 }
-
-final case class ResyKeys(apiKey: String, authToken: String)
-
-final case class ReservationDetails(
-  date: String,
-  partySize: Int,
-  venueId: Int,
-  resTimeTypes: Seq[ReservationTimeType]
-)
-
-final case class ReservationTimeType(reservationTime: String, tableType: Option[String] = None)
-
-object ReservationTimeType {
-
-  def apply(reservationTime: String, tableType: String): ReservationTimeType = {
-    ReservationTimeType(reservationTime, Some(tableType))
-  }
-}
-
-final case class SnipeTime(hours: Int, minutes: Int)

@@ -1,32 +1,21 @@
 package com.resy
 
-object ResyConfig {
+final case class ResyKeys(apiKey: String, authToken: String)
 
-  val resyKeys: ResyKeys = ResyKeys(
-    // Your user profile API key which can be found via your browser web console in your headers
-    // called "authorization"
-    apiKey = ???,
-    // Your user profile authentication token which can be found via your browser web console in
-    // your headers called "x-resy-auth-token"
-    authToken = ???
-  )
+final case class ReservationDetails(
+  date: String,
+  partySize: Int,
+  venueId: Int,
+  resTimeTypes: Seq[ReservationTimeType]
+)
 
-  val resDetails: ReservationDetails = ReservationDetails(
-    // Date of the reservation in YYYY-MM-DD format
-    date = ???,
-    // Size of the party reservation
-    partySize = ???,
-    // Unique identifier of the restaurant where you want to make the reservation
-    venueId = ???,
-    // Priority list of reservation times and table types. Time is in military time HH:MM:SS format.
-    // If no preference on table type, then simply don't set it.
-    resTimeTypes = ???
-  )
+final case class ReservationTimeType(reservationTime: String, tableType: Option[String] = None)
 
-  val snipeTime: SnipeTime = SnipeTime(
-    // Hour of the day when reservations become available and when you want to snipe
-    hours = ???,
-    // Minute of the day when reservations become available and when you want to snipe
-    minutes = ???
-  )
+object ReservationTimeType {
+
+  def apply(reservationTime: String, tableType: String): ReservationTimeType = {
+    ReservationTimeType(reservationTime, Some(tableType))
+  }
 }
+
+final case class SnipeTime(hours: Int, minutes: Int)
