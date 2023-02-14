@@ -92,10 +92,10 @@ class ResyClientSpec extends AnyFlatSpec with Matchers {
       partySize = resDetails.partySize,
       venueId   = resDetails.venueId,
       resTimeTypes = Seq(
-        ReservationTimeType("17:00:00", "")
+        ReservationTimeType("18:00:00", "")
       ),
       millisToRetry = (.1 seconds).toMillis
-    ) shouldEqual Success("CONFIG_ID2")
+    ) shouldEqual Success("CONFIG_ID5")
   }
 
   it should "find an available reservation with no table type preference" in new Fixture {
