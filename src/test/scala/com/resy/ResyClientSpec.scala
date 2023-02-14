@@ -88,9 +88,9 @@ class ResyClientSpec extends AnyFlatSpec with Matchers {
       .thenReturn(Future(Source.fromResource("getReservations.json").mkString))
 
     resyClient.findReservations(
-      date = resDetails.date,
+      date      = resDetails.date,
       partySize = resDetails.partySize,
-      venueId = resDetails.venueId,
+      venueId   = resDetails.venueId,
       resTimeTypes = Seq(
         ReservationTimeType("17:00:00", "")
       ),

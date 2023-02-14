@@ -188,7 +188,7 @@ class ResyClient(resyApi: ResyApi) extends Logging {
     val results = reservationMap.get(resTimeTypes.head.reservationTime).flatMap { tableTypes =>
       resTimeTypes.head.tableType match {
         case Some(tableType) if tableType.nonEmpty => tableTypes.get(tableType.toLowerCase)
-        case _            => Some(tableTypes.head._2)
+        case _                                     => Some(tableTypes.head._2)
       }
     }
 
