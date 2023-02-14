@@ -83,6 +83,21 @@ class ResyClientSpec extends AnyFlatSpec with Matchers {
     ) shouldEqual Success("CONFIG_ID5")
   }
 
+  it should "find an available reservation with empty string as the table type" in new Fixture {
+    when(resyApi.getReservations(resDetails.date, resDetails.partySize, resDetails.venueId))
+      .thenReturn(Future(Source.fromResource("getReservations.json").mkString))
+
+    resyClient.findReservations(
+      date      = resDetails.date,
+      partySize = resDetails.partySize,
+      venueId   = resDetails.venueId,
+      resTimeTypes = Seq(
+        ReservationTimeType("18:00:00", "")
+      ),
+      millisToRetry = (.1 seconds).toMillis
+    ) shouldEqual Success("CONFIG_ID5")
+  }
+
   it should "find an available reservation with no table type preference" in new Fixture {
     when(resyApi.getReservations(resDetails.date, resDetails.partySize, resDetails.venueId))
       .thenReturn(Future(Source.fromResource("getReservations.json").mkString))
