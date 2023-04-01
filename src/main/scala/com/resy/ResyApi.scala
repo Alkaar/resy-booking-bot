@@ -115,7 +115,8 @@ object ResyApi extends Logging {
   private[this] def createHeaders(resyKeys: ResyKeys): Seq[(String, String)] = {
     Seq(
       "Authorization"     -> s"""ResyAPI api_key="${resyKeys.apiKey}"""",
-      "x-resy-auth-token" -> resyKeys.authToken
+      "x-resy-auth-token" -> resyKeys.authToken,
+      "origin" -> s"https://widgets.resy.com"      
     )
   }
 
