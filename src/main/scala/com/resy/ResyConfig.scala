@@ -18,4 +18,11 @@ object ReservationTimeType {
   }
 }
 
-final case class SnipeTime(hours: Int, minutes: Int)
+final case class RunDetails(
+  mode: String,
+  scheduled: Scheduled,
+  loop: Loop)
+
+final case class Scheduled(hours: Int, minutes: Int)
+
+final case class Loop(interval: Int, maxRetries: Int)
