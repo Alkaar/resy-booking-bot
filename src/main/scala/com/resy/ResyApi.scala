@@ -108,7 +108,8 @@ object ResyApi extends Logging {
       .withHttpHeaders(
         createHeaders(resyKeys) ++ Seq(
           "Content-Type" -> "application/x-www-form-urlencoded",
-          "origin"       -> "https://widgets.resy.com/"
+          "Origin"       -> "https://widgets.resy.com",
+          "Referer"      -> "https://widgets.resy.com/"
         ): _*
       )
       .post(post)
