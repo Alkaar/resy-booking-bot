@@ -11,6 +11,12 @@ vary on what time and how many days out reservations are made available. When ru
 specified time and wake up to try to snipe a reservation. It will attempt to grab a reservation for a couple of 
 seconds and shutdown, outputting whether is it was or wasn't successful in getting a reservation.
 
+## Additional Documentation
+This readme is meant to be sufficient if you have prior experience with programming and a familiarity with web 
+development or UI experience. If however you are newer to programming or need a bit more guidance, you can check out 
+the [Wiki](https://github.com/Alkaar/resy-booking-bot/wiki) for more information including a getting started guide, 
+along with step-by-step instructions.
+
 ## Usage
 You need to provide a few values before running the bot.  You can set these parameters in the `resyConfig.conf` file 
 which is located in the `resources` folder. There are comments above the properties with what needs to be provided 
