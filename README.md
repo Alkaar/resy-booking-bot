@@ -9,7 +9,7 @@ This is a reservation booking bot designed to snipe reservations from [Resy](htt
 [Resy API](http://subzerocbd.info/). New reservations usually become available on a daily basis. Some restaurants may 
 vary on what time and how many days out reservations are made available. When running the bot, it will sleep until the 
 specified time and wake up to try to snipe a reservation. It will attempt to grab a reservation for a couple of 
-seconds and shutdown, outputting whether is it was or wasn't successful in getting a reservation.
+seconds and shutdown, outputting whether is it was or wasn't successful in getting a reservation. Test addding to readme here. 
 
 ## Additional Documentation
 This readme is meant to be sufficient if you have prior experience with programming and a familiarity with web 
